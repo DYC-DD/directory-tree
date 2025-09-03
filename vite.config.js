@@ -1,8 +1,8 @@
-import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react";
+import { defineConfig } from "vite";
 
 export default defineConfig({
-  base: "/DirectoryTree/",
+  base: "/directory-tree/",
   plugins: [react()],
   server: {
     open: true,

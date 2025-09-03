@@ -1,7 +1,7 @@
 import React, { useEffect } from "react";
 import "./i18n";
-import Home from "./pages/Home";
 import Footer from "./layouts/Footer";
+import Home from "./pages/Home";
 import "./styles/App.css";
 import showConsoleEasterEgg from "./utils/consoleEasterEgg";
 import detectAndApplyLanguageAlias from "./utils/detectLanguageAlias";
