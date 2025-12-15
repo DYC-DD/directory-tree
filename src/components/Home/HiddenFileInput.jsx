@@ -1,8 +1,5 @@
 import React from "react";
 
-/**
-隱藏的 <input type="file" /> 元件
- */
 export default function HiddenFileInput({
   fileInputRef,
   uploadMode,
@@ -10,18 +7,25 @@ export default function HiddenFileInput({
   onJsonSelect,
   onYamlSelect,
 }) {
+  const isFolder = uploadMode === "folder";
+  const isAutoFile = uploadMode === "auto";
+
   return (
     <input
       ref={fileInputRef}
       type="file"
-      {...(uploadMode === "folder"
+      {...(isFolder
         ? { webkitdirectory: "true", directory: "", multiple: true }
+        : isAutoFile
+        ? { accept: ".json,.yaml,.yml", multiple: false }
         : uploadMode === "json"
         ? { accept: ".json", multiple: false }
-        : { accept: ".yaml, .yml", multiple: false })}
+        : { accept: ".yaml,.yml", multiple: false })}
       onChange={
-        uploadMode === "folder"
+        isFolder
           ? onFolderSelect
+          : isAutoFile
+          ? onJsonSelect
           : uploadMode === "json"
           ? onJsonSelect
           : onYamlSelect

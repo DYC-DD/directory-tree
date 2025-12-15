@@ -1,16 +1,12 @@
 import React from "react";
 
-/**
- * OutputPanel
- * - 顯示 Markdown 輸出區
- * - 提供 Copy / Download Markdown / Download Image 三個按鈕
- */
 export default function OutputPanel({
   markdown,
   textRef,
   onCopy,
   onDownloadMarkdown,
   onDownloadImage,
+  onClear,
   t,
 }) {
   return (
@@ -18,11 +14,13 @@ export default function OutputPanel({
       <div className="output-header">
         <span>Markdown</span>
         <div className="button-group">
+          {/* Copy */}
           <button onClick={onCopy}>
             <img src={`./images/copy-solid.png`} alt="copy" className="icon" />
             {t("copy")}
           </button>
 
+          {/* Download Markdown */}
           <button onClick={onDownloadMarkdown}>
             <img
               src={`./images/download-solid.png`}
@@ -32,6 +30,7 @@ export default function OutputPanel({
             {t("download")}
           </button>
 
+          {/* Download Image */}
           <button onClick={onDownloadImage}>
             <img
               src={`./images/image-solid.png`}
@@ -39,6 +38,20 @@ export default function OutputPanel({
               className="icon"
             />
             {t("downloadImage")}
+          </button>
+
+          {/* Clear */}
+          <button
+            onClick={onClear}
+            disabled={!markdown?.trim()}
+            title={t("clear")}
+          >
+            <img
+              src={`./images/trash-solid.png`}
+              alt="clear"
+              className="icon"
+            />
+            {t("clear")}
           </button>
         </div>
       </div>

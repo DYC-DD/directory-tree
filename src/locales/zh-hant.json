@@ -25,5 +25,11 @@
   "invalidYamlFormat": "上傳的 YAML 格式無效，請確認內容正確",
   "requireJsonFile": "只允許上傳單一 JSON 檔案，且副檔名必須為 .json",
   "requireYamlFile": "只允許上傳單一 YAML 檔案，且副檔名必須為 .yaml 或 .yml",
-  "alert.noContent": "尚未產出任何內容，無法下載！"
+  "alert.noContent": "尚未產出任何內容，無法下載！",
+  "title.prefix.auto": "🧠 自動偵測：拖曳或點擊選擇",
+  "modeOptionAuto": "自動",
+  "dropZoneTextAuto": "📁 左鍵選擇資料夾｜📄 右鍵選擇 JSON/YAML｜也可直接拖曳資料夾或檔案",
+  "unsupportedInput": "未偵測到可處理的內容，請拖曳資料夾或 JSON/YAML 檔案",
+  "unsupportedFile": "只支援上傳單一 JSON（.json）或 YAML（.yaml/.yml）檔案",
+  "clear": "清除"
 }
