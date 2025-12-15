@@ -8,10 +8,10 @@ import "../styles/Home.css";
 import GooeyNav from "../components/GooeyNav/GooeyNav";
 import ExcludeControls from "../components/Home/ExcludeControls";
 import HiddenFileInput from "../components/Home/HiddenFileInput";
-import HomeHeader from "../components/Home/HomeHeader";
 import OutputPanel from "../components/Home/OutputPanel";
 import ScreenshotWrapper from "../components/Home/ScreenshotWrapper";
 import PixelCard from "../components/PixelCard/PixelCard";
+import RotatingText from "../components/RotatingText/RotatingText";
 
 import { getJsonBaseName, getYamlBaseName } from "../utils/fileNameUtils";
 import { renderObjectTreeMarkdown } from "../utils/objectTreeMarkdownUtils";
@@ -427,13 +427,34 @@ function Home() {
 
   return (
     <div className="container">
-      <HomeHeader
-        titleMode={effectiveMode}
-        isFolderMode={effectiveMode === "folder"}
-        showFileSize={showFileSize}
-        onToggleFileSize={() => setShowFileSize((prev) => !prev)}
-        t={t}
-      />
+      <h1 className="home-title">
+        Automatically convert &quot;
+        <RotatingText
+          texts={["Folder", "JSON", "YAML"]}
+          mainClassName="rotating-chip px-2 sm:px-2 md:px-3 bg-cyan-300 text-black overflow-hidden py-0.5 sm:py-1 md:py-2 justify-center rounded-lg"
+          staggerFrom={"last"}
+          initial={{ y: "100%" }}
+          animate={{ y: 0 }}
+          exit={{ y: "-120%" }}
+          staggerDuration={0.025}
+          splitLevelClassName="overflow-hidden pb-0.5 sm:pb-1 md:pb-1"
+          transition={{ type: "spring", damping: 30, stiffness: 400 }}
+          rotationInterval={2000}
+        />
+        &quot; to Markdown directory trees
+      </h1>
+
+      {effectiveMode === "folder" && (
+        <div className="file-size">
+          <div>{t("toggleSizeHint")}</div>
+          <button
+            onClick={() => setShowFileSize((prev) => !prev)}
+            className={`file-size-button ${showFileSize ? "active" : ""}`}
+          >
+            {t(showFileSize ? "toggleSizeOn" : "toggleSizeOff")}
+          </button>
+        </div>
+      )}
 
       <ExcludeControls
         uploadMode={effectiveMode}
