@@ -5,7 +5,6 @@ import { useTranslation } from "react-i18next";
 
 import "../styles/Home.css";
 
-import GooeyNav from "../components/GooeyNav/GooeyNav";
 import ExcludeControls from "../components/Home/ExcludeControls";
 import HiddenFileInput from "../components/Home/HiddenFileInput";
 import OutputPanel from "../components/Home/OutputPanel";
@@ -19,7 +18,7 @@ import { generateFolderTreeMarkdown } from "../utils/treeMarkdownUtils";
 
 function Home() {
   // i18n
-  const { t, i18n } = useTranslation();
+  const { t } = useTranslation();
 
   const [detectedMode, setDetectedMode] = useState(null);
   const effectiveMode = detectedMode ?? "auto";
@@ -50,23 +49,6 @@ function Home() {
   const textRef = useRef(null);
   const folderInputRef = useRef(null);
   const fileInputRef = useRef(null);
-
-  // 語言切換
-  const languageItems = [
-    { label: "繁體中文", language: "zhhant", href: "#" },
-    { label: "简体中文", language: "zhhans", href: "#" },
-    { label: "English", language: "en", href: "#" },
-    { label: "日本語", language: "ja", href: "#" },
-    { label: "한국어", language: "ko", href: "#" },
-    { label: "Español", language: "es", href: "#" },
-    { label: "Français", language: "fr", href: "#" },
-    { label: "Deutsch", language: "de", href: "#" },
-    { label: "हिंदी", language: "hi", href: "#" },
-  ];
-
-  const activeLangIndex = languageItems.findIndex(
-    (item) => item.language === i18n.language
-  );
 
   // folder 模式：當 files / excludes / showFileSize 變動 -> 重算 markdown
   useEffect(() => {
@@ -529,21 +511,6 @@ function Home() {
             </span>
           ))}
       </p>
-
-      <div className="languageItems">
-        <GooeyNav
-          items={languageItems}
-          animationTime={600}
-          pCount={15}
-          minDistance={20}
-          maxDistance={42}
-          maxRotate={75}
-          colors={[1, 2, 3, 1, 2, 3, 1, 4]}
-          timeVariance={300}
-          initialActiveIndex={activeLangIndex}
-          onItemClick={(item) => i18n.changeLanguage(item.language)}
-        />
-      </div>
 
       <ScreenshotWrapper lines={lines} />
     </div>
