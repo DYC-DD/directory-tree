@@ -11,6 +11,7 @@ import OutputPanel from "../components/Home/OutputPanel";
 import ScreenshotWrapper from "../components/Home/ScreenshotWrapper";
 import PixelCard from "../components/PixelCard/PixelCard";
 import RotatingText from "../components/RotatingText/RotatingText";
+import ScrambledText from "../components/ScrambledText/ScrambledText";
 
 import { getJsonBaseName, getYamlBaseName } from "../utils/fileNameUtils";
 import { renderObjectTreeMarkdown } from "../utils/objectTreeMarkdownUtils";
@@ -501,16 +502,15 @@ function Home() {
         t={t}
       />
 
-      <p className="note">
-        {t("note")
-          .split("\n")
-          .map((line, index) => (
-            <span key={index}>
-              {line}
-              <br />
-            </span>
-          ))}
-      </p>
+      <ScrambledText
+        className="scrambled-text-demo"
+        radius={50}
+        duration={1.2}
+        speed={0.5}
+        scrambleChars=".:"
+      >
+        {[t("note1"), t("note2"), t("note3")].join("\n")}
+      </ScrambledText>
 
       <ScreenshotWrapper lines={lines} />
     </div>

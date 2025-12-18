@@ -11,6 +11,7 @@ This changelog follows the [Keep a Changelog](https://keepachangelog.com/zh-TW/1
   - **左鍵點擊**：選擇整個資料夾
   - **右鍵點擊**：選擇單一檔案
 - 新增 **「清除」按鈕**，可一鍵清空目前產出的樹狀結果與輸出內容，提升使用流程順暢度
+- 新增 ScrambledText 文字動畫效果，用於重點說明與提示文字顯示。
 
 ### Changed
 
