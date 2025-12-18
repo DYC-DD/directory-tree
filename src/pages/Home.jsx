@@ -143,13 +143,8 @@ function Home() {
         setUploadFileName(rootName);
         setMarkdown(md);
       } catch (err) {
-        console.error(
-          mode === "json" ? "JSON 解析錯誤：" : "YAML 解析錯誤：",
-          err
-        );
-        setMarkdown(
-          t(mode === "json" ? "invalidJsonFormat" : "invalidYamlFormat")
-        );
+        console.error("Object tree 解析失敗：", err);
+        setMarkdown("");
       }
     };
 
@@ -411,11 +406,11 @@ function Home() {
   return (
     <div className="container">
       <h1 className="home-title">
-        Automatically convert &quot;
+        {t("home.title.prefix")}
         <RotatingText
           texts={["Folder", "JSON", "YAML"]}
           mainClassName="rotating-chip px-2 sm:px-2 md:px-3 bg-cyan-300 text-black overflow-hidden py-0.5 sm:py-1 md:py-2 justify-center rounded-lg"
-          staggerFrom={"last"}
+          staggerFrom="last"
           initial={{ y: "100%" }}
           animate={{ y: 0 }}
           exit={{ y: "-120%" }}
@@ -424,7 +419,7 @@ function Home() {
           transition={{ type: "spring", damping: 30, stiffness: 400 }}
           rotationInterval={2000}
         />
-        &quot; to Markdown directory trees
+        {t("home.title.suffix")}
       </h1>
 
       {effectiveMode === "folder" && (
@@ -481,15 +476,7 @@ function Home() {
         onContextMenu={handleRightClickOpenFile} // 右鍵：JSON/YAML
       >
         <PixelCard variant="blue" />
-        <div className="drop-text">
-          {effectiveMode === "auto"
-            ? t("dropZoneTextAuto")
-            : effectiveMode === "folder"
-            ? t("dropZoneTextFolder")
-            : effectiveMode === "json"
-            ? t("dropZoneTextJson")
-            : t("dropZoneTextYaml")}
-        </div>
+        <div className="drop-text">{t("dropZoneTextAuto")}</div>
       </div>
 
       <OutputPanel
