@@ -10,7 +10,7 @@
   font-size: 2.5rem;
   font-weight: 700;
   line-height: 1.2;
-  margin: 2rem;
+  margin: 4rem 0;
   display: flex;
   flex-wrap: wrap;
   gap: 10px;
@@ -24,7 +24,7 @@
   align-items: center;
   justify-content: center;
   padding: 0.25em 0.5em;
-  background-color: #ac37f0;
+  background-color: #378af0;
   color: #fff;
   border-radius: 999px;
   overflow: hidden;
@@ -74,11 +74,6 @@
   justify-content: center;
   height: auto;
   min-height: 3em;
-}
-
-.checkbox.hidden {
-  visibility: hidden;
-  height: 5em;
 }
 
 .exclude-button {
@@ -181,7 +176,7 @@
 .drop-zone .drop-text {
   position: relative;
   z-index: 1;
-  font-size: 20px;
+  font-size: 1.2rem;
   pointer-events: none;
 }
 
@@ -196,6 +191,7 @@
   border-radius: 10px;
   overflow: hidden;
   border: 1px solid #444;
+  margin-bottom: 3rem;
 }
 
 .output-header {
@@ -253,12 +249,12 @@
   font-size: 14px;
   line-height: 1.4;
   letter-spacing: 0.1em;
-  min-height: 18em;
+  min-height: 26em;
 }
 
 .output .size-info,
 .codeSnap-body-line .size-info {
-  color: #c2bbff;
+  color: #7cb2f4;
 }
 
 /* ===== ScreenshotWrapper（下載圖片用） ===== */
@@ -334,7 +330,8 @@
 /* ===== note ===== */
 
 .note {
-  margin: 5rem 0;
+  margin-top: auto;
+  margin-bottom: 3rem;
   max-width: 1000px;
 }
 
@@ -351,28 +348,49 @@
 @media (max-width: 768px) {
   .home-title {
     font-size: 1.6em;
-    margin-bottom: 1.2em;
+    margin: 1em;
   }
 
   .file-size {
-    margin-bottom: 3em;
+    font-size: 14px;
+    margin-bottom: 1em;
+  }
+
+  .file-size-button {
+    font-size: 12px;
+    padding: 0.2em 0.6em;
   }
 
   .checkbox {
-    font-size: 16px;
-    margin-bottom: 3.5em;
+    font-size: 14px;
+    margin-bottom: 1.6em;
   }
 
-  .exclude-button {
-    font-size: 12px;
+  .checkbox > .exclude-button {
+    display: none;
+  }
+
+  .checkbox .custom-input-wrapper {
+    width: 100%;
+    flex: 1 1 100%;
+  }
+
+  .checkbox .custom-excludes {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin-top: 6px;
   }
 
   .custom-input {
     width: 100%;
+    max-width: 160px;
+    font-size: 12px;
   }
 
   .drop-zone {
     padding: 4em 1em;
+    margin: 2rem 0 2.5rem 0;
   }
 
   .drop-zone .drop-text {
@@ -398,10 +416,14 @@
   }
 
   .output {
-    min-height: 6em;
+    min-height: 12em;
   }
 
   .button-group {
     flex-shrink: 0;
+  }
+
+  .note p {
+    font-size: 14px;
   }
 }

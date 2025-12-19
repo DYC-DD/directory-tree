@@ -14,7 +14,7 @@ body {
 }
 
 .container {
-  padding: 2em 8em;
+  padding: 0em 12em;
   font-family: "Segoe UI", sans-serif;
   background-color: #1b1b1b;
   min-height: 100dvh;
@@ -31,6 +31,6 @@ body {
 
 @media (max-width: 768px) {
   .container {
-    padding: 1.2em 1em;
+    padding: 0em 1em;
   }
 }

@@ -434,23 +434,25 @@ function Home() {
         </div>
       )}
 
-      <ExcludeControls
-        uploadMode={effectiveMode}
-        excludedItems={excludedItems}
-        onToggleExcludedItem={handleToggleExcludedItem}
-        inputValue={inputValue}
-        onInputValueChange={(v) => {
-          setInputValue(v);
-          setHighlightIndex(-1);
-        }}
-        onInputKeyDown={handleInputKeyDown}
-        filteredSuggestions={filteredSuggestions}
-        highlightIndex={highlightIndex}
-        onSuggestionClick={handleSuggestionClick}
-        customExcludesExact={customExcludesExact}
-        onRemoveExcludeTag={handleRemoveExcludeTag}
-        t={t}
-      />
+      {effectiveMode === "folder" && (
+        <ExcludeControls
+          uploadMode={effectiveMode}
+          excludedItems={excludedItems}
+          onToggleExcludedItem={handleToggleExcludedItem}
+          inputValue={inputValue}
+          onInputValueChange={(v) => {
+            setInputValue(v);
+            setHighlightIndex(-1);
+          }}
+          onInputKeyDown={handleInputKeyDown}
+          filteredSuggestions={filteredSuggestions}
+          highlightIndex={highlightIndex}
+          onSuggestionClick={handleSuggestionClick}
+          customExcludesExact={customExcludesExact}
+          onRemoveExcludeTag={handleRemoveExcludeTag}
+          t={t}
+        />
+      )}
 
       <HiddenFileInput
         fileInputRef={folderInputRef}

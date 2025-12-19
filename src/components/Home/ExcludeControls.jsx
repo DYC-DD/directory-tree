@@ -1,5 +1,13 @@
 import React from "react";
 
+/**
+ * ExcludeControls
+ *
+ * 顯示「排除項目」相關控制：
+ * - 只在 uploadMode === "folder" 時顯示
+ * - 桌面版順序：說明文字 → input → 預設按鈕 → 自訂 tags
+ * - 非 folder 模式：完全不 render（不佔任何版面空間）
+ */
 export default function ExcludeControls({
   uploadMode,
   excludedItems,
@@ -14,10 +22,15 @@ export default function ExcludeControls({
   onRemoveExcludeTag,
   t,
 }) {
+  // ✅ 非資料夾模式，直接不 render
+  if (uploadMode !== "folder") return null;
+
   return (
-    <div className={`checkbox ${uploadMode !== "folder" ? "hidden" : ""}`}>
+    <div className="checkbox">
+      {/* 說明文字 */}
       <span>{t("hideLabel")}</span>
 
+      {/* 🔹 自訂輸入框（放在按鈕前面） */}
       <div className="custom-input-wrapper">
         <input
           type="text"
@@ -28,6 +41,7 @@ export default function ExcludeControls({
           className="custom-input"
         />
 
+        {/* 建議清單 */}
         {inputValue && (
           <div className="suggestion-list">
             {filteredSuggestions.length > 0 ? (
@@ -49,9 +63,11 @@ export default function ExcludeControls({
         )}
       </div>
 
+      {/* 🔹 預設排除按鈕 */}
       {Object.keys(excludedItems).map((item) => (
         <button
           key={item}
+          type="button"
           onClick={() => onToggleExcludedItem(item)}
           className={`exclude-button ${excludedItems[item] ? "active" : ""}`}
         >
@@ -59,6 +75,7 @@ export default function ExcludeControls({
         </button>
       ))}
 
+      {/* 🔹 自訂排除 tags */}
       {customExcludesExact.length > 0 && (
         <div className="custom-excludes">
           {customExcludesExact.map((name) => (

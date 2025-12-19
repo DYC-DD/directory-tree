@@ -23,21 +23,23 @@ const Footer = () => {
     };
   }, []);
 
+  const startYear = 2025;
+  const currentYear = new Date().getFullYear();
+
+  const yearText =
+    startYear === currentYear ? `${startYear}` : `${startYear}-${currentYear}`;
+
   return (
     <footer id="footer" ref={footerRef} className="animated-footer">
-      <p>© 2025 DYC. All rights reserved.</p>
       <p>
-        Developed and maintained by{" "}
+        © {yearText} All rights reserved. -{" "}
         <a
           href="https://github.com/DYC-DD"
           target="_blank"
           rel="noopener noreferrer"
         >
-          DYC-DD
+          DENG
         </a>
-      </p>
-      <p>
-        <a href="mailto:dyccc01@gmail.com">Contact Us</a>
       </p>
     </footer>
   );
