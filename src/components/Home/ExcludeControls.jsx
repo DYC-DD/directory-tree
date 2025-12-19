@@ -1,12 +1,5 @@
 import React from "react";
 
-/**
- * ExcludeControls
- * - folder 模式才會顯示
- *  - 內建排除項目按鈕（.git / .DS_Store / node_modules）
- *  - 自訂排除 input（含 suggestion 與鍵盤上下選擇 Enter 加入）
- *  - 已加入的排除 tag（點擊移除）
- */
 export default function ExcludeControls({
   uploadMode,
   excludedItems,
@@ -24,16 +17,6 @@ export default function ExcludeControls({
   return (
     <div className={`checkbox ${uploadMode !== "folder" ? "hidden" : ""}`}>
       <span>{t("hideLabel")}</span>
-
-      {Object.keys(excludedItems).map((item) => (
-        <button
-          key={item}
-          onClick={() => onToggleExcludedItem(item)}
-          className={`exclude-button ${excludedItems[item] ? "active" : ""}`}
-        >
-          {item}
-        </button>
-      ))}
 
       <div className="custom-input-wrapper">
         <input
@@ -66,16 +49,27 @@ export default function ExcludeControls({
         )}
       </div>
 
+      {Object.keys(excludedItems).map((item) => (
+        <button
+          key={item}
+          onClick={() => onToggleExcludedItem(item)}
+          className={`exclude-button ${excludedItems[item] ? "active" : ""}`}
+        >
+          {item}
+        </button>
+      ))}
+
       {customExcludesExact.length > 0 && (
         <div className="custom-excludes">
           {customExcludesExact.map((name) => (
-            <span
+            <button
               key={name}
+              type="button"
               onClick={() => onRemoveExcludeTag(name)}
-              className="exclude-tag"
+              className="exclude-button active"
             >
               {name}
-            </span>
+            </button>
           ))}
         </div>
       )}

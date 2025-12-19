@@ -1,60 +1,46 @@
-@import url("https://fonts.googleapis.com/css2?family=Fira+Code:wght@300..700&display=swap");
-@import url("https://fonts.googleapis.com/css?family=Ubuntu+Mono:700");
-@import url("https://fonts.googleapis.com/css2?family=Google+Sans+Code:ital,wght@0,300..800;1,300..800&display=swap");
-
-body {
-  margin: 0;
-  padding: 0;
-  user-select: none;
-}
-
-.output,
-.output * {
-  user-select: text !important;
-}
-
-.container {
-  padding: 2em 8em;
-  font-family: "Segoe UI", sans-serif;
-  background-color: #212121;
-  min-height: 100vh;
-  box-sizing: border-box;
-  overflow: hidden;
+.home {
+  min-height: 100dvh;
   display: flex;
   flex-direction: column;
   justify-content: flex-start;
 }
 
-h1 {
-  margin-bottom: 0.8em;
-  color: #ececec;
-  text-align: center;
-  font-size: 2.4em;
+/* ===== 標題區塊 ===== */
+.home-title {
+  font-size: 2.5rem;
+  font-weight: 700;
+  line-height: 1.2;
+  margin: 2rem;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
 }
 
-.title-mode-select {
-  margin: 0 0 0.2em 0.2em;
-  font-size: 1em;
-  font-weight: bold;
-  padding: 0.1em 0.3em;
-  border-radius: 60px;
-  border: 1px solid #aaa;
-  background-color: #2a2a2a;
-  color: #ececec;
-  vertical-align: middle;
-  line-height: 1.2em;
-  text-align: center;
-  text-align-last: center;
+.rotating-chip {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.25em 0.5em;
+  background-color: #ac37f0;
+  color: #fff;
+  border-radius: 999px;
+  overflow: hidden;
+  font-weight: 600;
 }
 
+.rotating-chip-split {
+  overflow: hidden;
+}
+
+/* ===== 檔案大小切換區 ===== */
 .file-size {
-  text-align: center;
-  margin-bottom: 1em;
+  margin-bottom: 1.2em;
   color: #ececec;
   height: 1em;
   font-size: 16px;
-  text-align: center;
-  display: block;
   display: flex;
   flex-wrap: wrap;
   gap: 0.5em;
@@ -69,25 +55,25 @@ h1 {
   background-color: #2a2a2a;
   color: #fff;
   cursor: pointer;
-  font-family: "Fira Code", monospace;
 }
 
 .file-size-button.active {
   background-color: #555;
 }
 
+/* ===== ExcludeControls（排除項目） ===== */
 .checkbox {
   margin-bottom: 2em;
   font-size: 16px;
   color: #ececec;
   text-align: center;
-  display: block;
   display: flex;
   flex-wrap: wrap;
   gap: 0.5em;
   align-items: center;
   justify-content: center;
-  height: 3em;
+  height: auto;
+  min-height: 3em;
 }
 
 .checkbox.hidden {
@@ -97,12 +83,13 @@ h1 {
 
 .exclude-button {
   padding: 0.3em 0.8em;
-  border-radius: 12px;
+  border-radius: 999px;
   border: 1px solid #aaa;
   background-color: #2a2a2a;
   color: #fff;
   cursor: pointer;
-  font-family: "Fira Code", monospace;
+  font-family: "Google Sans Code", monospace;
+  font-size: 13px;
 }
 
 .exclude-button.active {
@@ -119,7 +106,7 @@ h1 {
   border: 1px solid #aaa;
   background-color: #1e1e1e;
   color: #fff;
-  width: 280px;
+  width: 200px;
   text-align: center;
 }
 
@@ -137,7 +124,7 @@ h1 {
   max-width: 100vw;
   white-space: normal;
   word-break: break-word;
-  font-family: "Fira Code", monospace;
+  font-family: "Google Sans Code", monospace;
 }
 
 .suggestion-item {
@@ -164,30 +151,20 @@ h1 {
 }
 
 .custom-excludes {
-  margin-top: 0.5em;
+  margin-top: 0;
   display: flex;
   flex-wrap: wrap;
   gap: 0.5em;
   justify-content: center;
 }
 
-.exclude-tag {
-  background-color: #555;
-  color: #fff;
-  padding: 0.3em 0.7em;
-  border-radius: 999px;
-  cursor: pointer;
-  font-size: 14px;
-  border: 1px solid #aaa;
-  font-family: "Fira Code", monospace;
-}
-
+/* ===== Drop Zone ===== */
 .drop-zone {
   border: 2px dashed #e0e0e0;
-  padding: 5em;
+  padding: 6em;
   text-align: center;
-  background: #212121;
-  margin-bottom: 1em;
+  background: #1b1b1b;
+  margin-bottom: 3em;
   border-radius: 10px;
   transition: border-color 0.3s;
   color: #ececec;
@@ -204,7 +181,7 @@ h1 {
 .drop-zone .drop-text {
   position: relative;
   z-index: 1;
-  font-size: 18px;
+  font-size: 20px;
   pointer-events: none;
 }
 
@@ -213,6 +190,7 @@ h1 {
   color: #00aaff;
 }
 
+/* ===== OutputPanel ===== */
 .output-container {
   background: #181618;
   border-radius: 10px;
@@ -223,7 +201,7 @@ h1 {
 .output-header {
   background: #302e30;
   color: #ccc;
-  padding: 0.8em 1.2em;
+  padding: 0.8em 1em;
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -233,18 +211,18 @@ h1 {
 
 .button-group {
   display: flex;
-  gap: 0.5em;
+  gap: 0.2em;
 }
 
 .output-header button {
   all: unset;
   color: #ccc;
   cursor: pointer;
-  font-size: 13px;
-  padding: 0 0.5em;
+  font-size: 14px;
+  padding: 0 0.4em;
   display: inline-flex;
   align-items: center;
-  gap: 0.3em;
+  gap: 0.2em;
   transition: color 0.2s ease;
 }
 
@@ -271,59 +249,35 @@ h1 {
   white-space: pre;
   overflow-x: auto;
   word-break: normal;
-  font-family: "Fira Code", monospace;
+  font-family: "Google Sans Code", monospace;
   font-size: 14px;
   line-height: 1.4;
-  letter-spacing: 0.08em;
-  min-height: 8em;
+  letter-spacing: 0.1em;
+  min-height: 18em;
 }
 
-.note {
-  margin: 3em 0 0 0;
-  text-align: center;
-  font-family: "Ubuntu Mono", sans-serif;
-  color: #ececec;
-  line-height: 1.4;
+.output .size-info,
+.codeSnap-body-line .size-info {
+  color: #c2bbff;
 }
 
-.languageItems {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  margin-top: auto;
-  margin-bottom: 30px;
-  height: 100px;
-  font-family: "Segoe UI", sans-serif;
-}
-
-.languageItems a {
-  color: #ececec;
-  text-decoration: none;
-}
-
-.languageItems a:hover {
-  text-decoration: none;
-  opacity: 0.8;
-}
-
-/* 背景 */
+/* ===== ScreenshotWrapper（下載圖片用） ===== */
 #screenshot-wrapper {
   background-color: #cee3f5;
   padding: 1em;
-  display: flex;
+  display: none;
   justify-content: center;
   align-items: center;
   width: fit-content;
   height: fit-content;
 }
 
-/* 卡片區塊 */
 .codeSnap-wrapper {
   background-color: #1e1e1e;
   border-radius: 12px;
   padding: 1em;
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.6);
-  font-family: "Fira Code", monospace;
+  font-family: "Google Sans Code", monospace;
   color: #ffffff;
   display: inline-block;
   max-width: 100%;
@@ -377,35 +331,25 @@ h1 {
   align-items: center;
 }
 
-.home-title {
-  font-size: 2rem;
-  font-weight: 700;
-  line-height: 1.2;
-  margin: 0 0 12px;
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-  align-items: center;
-  justify-content: center;
+/* ===== note ===== */
+
+.note {
+  margin: 5rem 0;
+  max-width: 1000px;
 }
 
-.rotating-chip {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  padding: 4px 10px;
-  border-radius: 10px;
-  background: #67e8f9;
-  color: #000;
-  overflow: hidden;
+.note p {
+  font-family: "Google Sans Code", monospace;
+  font-size: 1rem;
+  line-height: 1.6;
+  letter-spacing: 0;
+  text-align: center;
+  opacity: 0.9;
 }
 
+/* ===== RWD ===== */
 @media (max-width: 768px) {
-  .container {
-    padding: 1.2em 1em;
-  }
-
-  h1 {
+  .home-title {
     font-size: 1.6em;
     margin-bottom: 1.2em;
   }
@@ -436,10 +380,6 @@ h1 {
   }
 
   .output-header {
-    flex-wrap: nowrap;
-    flex-direction: row;
-    align-items: center;
-    justify-content: space-between;
     padding: 0.8em;
   }
 
@@ -463,24 +403,5 @@ h1 {
 
   .button-group {
     flex-shrink: 0;
-  }
-
-  .note {
-    font-size: 14px;
-    margin-top: 4em;
-  }
-
-  .languageItems {
-    flex-direction: column;
-    align-items: center;
-    gap: 1em;
-    height: auto;
-    margin-top: 2em;
-  }
-
-  .languageItems .gooey-nav-container nav ul {
-    flex-direction: column;
-    align-items: center;
-    gap: 1em;
   }
 }

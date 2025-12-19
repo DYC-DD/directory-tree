@@ -361,7 +361,7 @@ function Home() {
     const node = document.getElementById("screenshot-wrapper");
     if (!node) return;
 
-    node.style.display = "block";
+    node.style.display = "flex";
 
     toPng(node, { cacheBust: true, pixelRatio: 3 })
       .then((dataUrl) => {
@@ -404,18 +404,18 @@ function Home() {
     );
 
   return (
-    <div className="container">
+    <div className="home">
       <h1 className="home-title">
         {t("home.title.prefix")}
         <RotatingText
           texts={["Folder", "JSON", "YAML"]}
-          mainClassName="rotating-chip px-2 sm:px-2 md:px-3 bg-cyan-300 text-black overflow-hidden py-0.5 sm:py-1 md:py-2 justify-center rounded-lg"
+          mainClassName="rotating-chip"
           staggerFrom="last"
           initial={{ y: "100%" }}
           animate={{ y: 0 }}
           exit={{ y: "-120%" }}
           staggerDuration={0.025}
-          splitLevelClassName="overflow-hidden pb-0.5 sm:pb-1 md:pb-1"
+          splitLevelClassName="rotating-chip-split"
           transition={{ type: "spring", damping: 30, stiffness: 400 }}
           rotationInterval={2000}
         />
@@ -462,7 +462,7 @@ function Home() {
 
       <HiddenFileInput
         fileInputRef={fileInputRef}
-        uploadMode="auto" // 只接受 json/yaml/yml
+        uploadMode="auto"
         onFolderSelect={() => {}}
         onJsonSelect={handleAutoFileSelect}
         onYamlSelect={handleAutoFileSelect}
@@ -472,8 +472,8 @@ function Home() {
         className="drop-zone"
         onDrop={handleDrop}
         onDragOver={(e) => e.preventDefault()}
-        onClick={handleLeftClickOpenFolder} // 左鍵：資料夾
-        onContextMenu={handleRightClickOpenFile} // 右鍵：JSON/YAML
+        onClick={handleLeftClickOpenFolder}
+        onContextMenu={handleRightClickOpenFile}
       >
         <PixelCard variant="blue" />
         <div className="drop-text">{t("dropZoneTextAuto")}</div>
@@ -490,8 +490,8 @@ function Home() {
       />
 
       <ScrambledText
-        className="scrambled-text-demo"
-        radius={50}
+        className="note"
+        radius={30}
         duration={1.2}
         speed={0.5}
         scrambleChars=".:"

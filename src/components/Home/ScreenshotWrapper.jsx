@@ -1,11 +1,29 @@
 import React from "react";
 
-/**
- * ScreenshotWrapper
- * - 給 downloadImage() 用的「截圖用 DOM」
- * - 必須維持 id="screenshot-wrapper"，否則 html-to-image 找不到
- * - lines 由外部計算後傳入（避免這個元件自己拆 markdown）
- */
+function splitLineWithSizeSuffix(line) {
+  const sizeRegex = /^(.*?)(\s\((?:0|\d+(?:\.\d+)?)\s(?:B|KB|MB|GB)\))$/;
+
+  const match = line.match(sizeRegex);
+  if (!match) return null;
+
+  return {
+    mainText: match[1],
+    sizeText: match[2],
+  };
+}
+
+function renderLineWithColoredSize(line) {
+  const parts = splitLineWithSizeSuffix(line);
+  if (!parts) return line;
+
+  return (
+    <>
+      {parts.mainText}
+      <span className="size-info">{parts.sizeText}</span>
+    </>
+  );
+}
+
 export default function ScreenshotWrapper({ lines }) {
   return (
     <div id="screenshot-wrapper" style={{ display: "none" }}>
@@ -26,7 +44,7 @@ export default function ScreenshotWrapper({ lines }) {
           <div className="codeSnap-body">
             {lines.map((line, idx) => (
               <div key={idx} className="codeSnap-body-line">
-                {line}
+                {renderLineWithColoredSize(line)}
               </div>
             ))}
           </div>
