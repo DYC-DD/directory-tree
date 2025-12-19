@@ -1,0 +1,19 @@
+.text-block {
+  max-width: 1800px;
+  color: #fff;
+}
+
+.text-block p {
+  margin: 0;
+  text-align: center;
+}
+
+.scrambled-line {
+  display: inline;
+}
+
+.char {
+  will-change: contents;
+  display: inline-block;
+  vertical-align: top;
+}
