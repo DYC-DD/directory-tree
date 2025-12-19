@@ -1,5 +1,12 @@
 import React from "react";
 
+/**
+ * ScreenshotWrapper
+ * - 建立「程式碼截圖」專用的隱藏 DOM 結構
+ * - 提供行號、視窗裝飾（macOS 風格）與內容區塊
+ * - 僅在轉圖片 / 擷取畫面時使用
+ */
+
 function splitLineWithSizeSuffix(line) {
   const sizeRegex = /^(.*?)(\s\((?:0|\d+(?:\.\d+)?)\s(?:B|KB|MB|GB)\))$/;
 

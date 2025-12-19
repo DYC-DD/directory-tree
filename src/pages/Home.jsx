@@ -21,13 +21,15 @@ function Home() {
   // i18n
   const { t } = useTranslation();
 
+  // 模式偵測與模式控制
   const [detectedMode, setDetectedMode] = useState(null);
   const effectiveMode = detectedMode ?? "auto";
 
-  // UI 狀態
+  // 主要輸出與資料來源
   const [markdown, setMarkdown] = useState("");
   const [files, setFiles] = useState([]);
 
+  // 預設排除項目
   const [excludedItems, setExcludedItems] = useState({
     ".git": false,
     ".DS_Store": false,
@@ -35,47 +37,48 @@ function Home() {
   });
   const [customExcludesExact, setCustomExcludesExact] = useState([]);
 
+  // 自訂排除輸入輔助
   const [inputValue, setInputValue] = useState("");
   const [allNames, setAllNames] = useState([]);
   const [highlightIndex, setHighlightIndex] = useState(-1);
 
+  // 檔名/根節點顯示用
   const [rootFolderName, setRootFolderName] = useState("directory_tree");
   const [uploadFileName, setUploadFileName] = useState(null);
 
+  // folder 模式：是否顯示檔案大小
   const [showFileSize, setShowFileSize] = useState(false);
 
-  // Refs：兩個 input（資料夾 / 檔案）
-  // - folderInputRef：永遠用 webkitdirectory 選資料夾
-  // - fileInputRef：永遠用 accept 選 json/yaml
+  // Refs
   const textRef = useRef(null);
   const folderInputRef = useRef(null);
   const fileInputRef = useRef(null);
 
-  // folder 模式：當 files / excludes / showFileSize 變動 -> 重算 markdown
+  // folder 模式
   useEffect(() => {
     if (files.length === 0) return;
     if (effectiveMode !== "folder") return;
 
-    // 1) 收集所有名稱做 suggestion
+    // 收集所有節點名稱
     const uniqueNames = new Set();
     files.forEach((file) => {
       file.path.split("/").forEach((p) => uniqueNames.add(p));
     });
     setAllNames(Array.from(uniqueNames));
 
-    // 2) 組合目前啟用的排除清單
+    // 組合目前啟用的排除清單
     const activeExcludes = [
       ...Object.keys(excludedItems).filter((key) => excludedItems[key]),
       ...customExcludesExact,
     ];
 
-    // 3) 依 path 的每一段做精準排除
+    // 依路徑每一段做精準排除
     const filteredFiles = files.filter((file) => {
       const parts = file.path.split("/");
       return !parts.some((part) => activeExcludes.includes(part));
     });
 
-    // 4) 生成 markdown
+    // 生成 markdown
     const { markdown: md, rootFolderName: rootName } =
       generateFolderTreeMarkdown(filteredFiles, { showFileSize });
 
@@ -105,6 +108,7 @@ function Home() {
         return;
       }
 
+      // 資料夾：讀取子節點並遞迴
       if (entry.isDirectory) {
         const dirReader = entry.createReader();
         dirReader.readEntries(async (entries) => {
@@ -158,13 +162,13 @@ function Home() {
     const dt = e.dataTransfer;
     const fileList = Array.from(dt.files || []);
 
-    // 1) 判斷是否含資料夾 entry
+    // 判斷是否含資料夾
     const items = dt.items ? Array.from(dt.items) : [];
     const hasDirectory = items.some(
       (it) => it.webkitGetAsEntry?.()?.isDirectory
     );
 
-    // 2) 決定 dropMode
+    // 決定 dropMode
     let dropMode = null;
 
     if (hasDirectory) {
@@ -182,10 +186,10 @@ function Home() {
       return;
     }
 
-    // 3) 更新偵測結果
+    // 更新偵測結果
     setDetectedMode(dropMode);
 
-    // 4) 依 dropMode 處理
+    // 依模式處理
     if (dropMode === "folder") {
       setUploadFileName(null);
 
@@ -223,19 +227,12 @@ function Home() {
     parseAndRenderObjectTree(file, dropMode);
   };
 
-  /**
-   * DropZone 左鍵行為：開「資料夾選擇器」
-   * 固定左鍵開 folderInputRef（webkitdirectory）
-   */
+  // DropZone 左鍵：固定開啟「資料夾選擇器」
   const handleLeftClickOpenFolder = () => {
     folderInputRef.current?.click();
   };
 
-  /**
-   * DropZone 右鍵行為：開「JSON/YAML 檔案選擇器」
-   * 右鍵預設會跳瀏覽器選單，所以要 preventDefault()
-   * 固定右鍵開 fileInputRef（accept .json/.yaml/.yml）
-   */
+  // DropZone 右鍵：固定開啟「檔案選擇器（json/yaml）」
   const handleRightClickOpenFile = (e) => {
     e.preventDefault();
     fileInputRef.current?.click();
@@ -273,6 +270,7 @@ function Home() {
     parseAndRenderObjectTree(file, mode);
   };
 
+  // 內建排除項：切換狀態
   const handleToggleExcludedItem = (itemKey) => {
     setExcludedItems((prev) => ({
       ...prev,
@@ -280,6 +278,7 @@ function Home() {
     }));
   };
 
+  // Suggestion 清單：最多 10 筆，並排除已加入的 tag
   const filteredSuggestions = allNames
     .filter(
       (name) =>
@@ -288,6 +287,7 @@ function Home() {
     )
     .slice(0, 10);
 
+  // 自訂排除輸入框鍵盤操作
   const handleInputKeyDown = (e) => {
     if (e.key === "ArrowDown") {
       e.preventDefault();
@@ -315,28 +315,33 @@ function Home() {
     }
   };
 
+  // suggestion 點擊加入 tag
   const handleSuggestionClick = (name) => {
     setCustomExcludesExact((prev) => [...prev, name]);
     setInputValue("");
     setHighlightIndex(-1);
   };
 
+  // tag 移除
   const handleRemoveExcludeTag = (name) => {
     setCustomExcludesExact((prev) => prev.filter((n) => n !== name));
   };
 
-  // Copy / Download Markdown / Download Image
+  // 輸出操作：Copy / Download Markdown / Download Image
+  // 複製到剪貼簿
   const copyToClipboard = () => {
     if (textRef.current) {
       navigator.clipboard.writeText(markdown);
     }
   };
 
+  // 複製到剪貼簿
   const downloadMarkdown = () => {
     if (!markdown.trim()) {
       alert(t("alert.noContent"));
       return;
     }
+    // 檔名：json/yaml 用 uploadFileName，folder 用 rootFolderName
     const filename =
       effectiveMode === "json" || effectiveMode === "yaml"
         ? `${uploadFileName || "tree"}.md`
@@ -352,6 +357,7 @@ function Home() {
     URL.revokeObjectURL(url);
   };
 
+  // 下載圖片（把指定節點轉成 PNG）
   const downloadImage = () => {
     if (!markdown.trim()) {
       alert(t("alert.noContent"));
@@ -405,6 +411,7 @@ function Home() {
 
   return (
     <div className="home">
+      {/* 主標題 */}
       <h1 className="home-title">
         {t("home.title.prefix")}
         <RotatingText
@@ -422,6 +429,7 @@ function Home() {
         {t("home.title.suffix")}
       </h1>
 
+      {/* folder 模式才顯示：是否顯示檔案大小 */}
       {effectiveMode === "folder" && (
         <div className="file-size">
           <div>{t("toggleSizeHint")}</div>
@@ -434,6 +442,7 @@ function Home() {
         </div>
       )}
 
+      {/* folder 模式才顯示：排除控制 */}
       {effectiveMode === "folder" && (
         <ExcludeControls
           uploadMode={effectiveMode}
@@ -454,6 +463,7 @@ function Home() {
         />
       )}
 
+      {/* 隱藏 input：資料夾選擇器 */}
       <HiddenFileInput
         fileInputRef={folderInputRef}
         uploadMode="folder"
@@ -462,6 +472,7 @@ function Home() {
         onYamlSelect={() => {}}
       />
 
+      {/* 隱藏 input：檔案選擇器（json/yaml 共用） */}
       <HiddenFileInput
         fileInputRef={fileInputRef}
         uploadMode="auto"
@@ -470,6 +481,7 @@ function Home() {
         onYamlSelect={handleAutoFileSelect}
       />
 
+      {/* DropZone */}
       <div
         className="drop-zone"
         onDrop={handleDrop}
@@ -481,6 +493,7 @@ function Home() {
         <div className="drop-text">{t("dropZoneTextAuto")}</div>
       </div>
 
+      {/* 輸出面板 */}
       <OutputPanel
         markdown={markdown}
         textRef={textRef}
@@ -491,6 +504,7 @@ function Home() {
         t={t}
       />
 
+      {/* 註記 */}
       <ScrambledText
         className="note"
         radius={30}
@@ -501,6 +515,7 @@ function Home() {
         {[t("note1"), t("note2"), t("note3")].join("\n")}
       </ScrambledText>
 
+      {/* 圖片輸出用容器 */}
       <ScreenshotWrapper lines={lines} />
     </div>
   );

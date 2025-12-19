@@ -1,5 +1,15 @@
 import React from "react";
 
+/**
+ * OutputPanel
+ * - 顯示轉換後的 Markdown 目錄樹內容
+ * - 提供操作功能：
+ *   - 複製
+ *   - 下載 Markdown
+ *   - 下載圖片
+ *   - 清除內容
+ */
+
 function splitLineWithSizeSuffix(line) {
   const sizeRegex = /^(.*?)(\s\((?:0|\d+(?:\.\d+)?)\s(?:B|KB|MB|GB)\))$/;
 
