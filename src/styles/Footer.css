@@ -1,11 +1,9 @@
-@import url("https://fonts.googleapis.com/css?family=Ubuntu+Mono:700");
-
 body {
   position: relative;
   margin: 0;
   font: 100%/1 system-ui;
   background: #fff;
-  font-family: "Ubuntu Mono", sans-serif;
+  font-family: "Google Sans Code", monospace;
   user-select: none;
 }
 
@@ -14,7 +12,7 @@ main {
 }
 
 body.footer-pull main {
-  transform: translateY(-300px) scale(0.95);
+  transform: translateY(-80px) scale(0.95);
   transform-origin: bottom center;
   box-shadow: 0 2rem 2rem rgba(0, 0, 0, 0.5);
 }
@@ -22,20 +20,18 @@ body.footer-pull main {
 .animated-footer {
   position: relative;
   width: 100%;
-  padding: 2rem 2rem 1rem 2rem;
+  padding: 0rem 0rem 1rem 0rem;
   background: rgb(255, 255, 255);
-  color: rgb(82, 82, 82);
-  font-size: 20px;
+  color: #6e6e6e;
+  font-size: 16px;
   text-align: center;
   font-weight: 600;
   box-sizing: border-box;
-  padding-left: 8em;
-  padding-right: 8em;
 }
 
 .animated-footer a {
   text-decoration: none;
-  color: #3b62cf;
+  color: #6e6e6e;
 }
 
 .animated-footer a:hover {
@@ -43,12 +39,11 @@ body.footer-pull main {
 }
 
 @media (max-width: 768px) {
-  .animated-footer {
-    padding: 0rem 1rem 2rem 1rem;
-    font-size: 14px;
+  body.footer-pull main {
+    transform: translateY(-50px) scale(0.95);
   }
 
-  .animated-footer p {
-    margin: 0.5rem 0;
+  .animated-footer {
+    font-size: 14px;
   }
 }
