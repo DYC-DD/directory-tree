@@ -457,7 +457,7 @@ function Home() {
     <div className="home">
       {/* 主標題 */}
       <h1 className="home-title">
-        {t("home.title.prefix")}
+        <span className="home-title-copy">{t("home.title.prefix")}</span>
         <RotatingText
           texts={["Folder", "JSON", "YAML"]}
           mainClassName="rotating-chip"
@@ -470,7 +470,7 @@ function Home() {
           transition={{ type: "spring", damping: 30, stiffness: 400 }}
           rotationInterval={2000}
         />
-        {t("home.title.suffix")}
+        <span className="home-title-copy">{t("home.title.suffix")}</span>
       </h1>
 
       {/* folder 模式才顯示：排除控制 */}

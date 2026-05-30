@@ -4,7 +4,7 @@
   "hideLabel": "搜尋並點選資料夾/檔案即可隱藏：",
   "inputPlaceholder": "輸入檔名、資料夾或路徑",
   "noSuggestions": "無相符項目",
-  "dropZoneTextAuto": "📁 左鍵選擇資料夾｜📄 右鍵選擇 JSON / YAML，或直接拖曳資料夾或檔案",
+  "dropZoneTextAuto": "📁 左鍵選擇資料夾\n📄 右鍵選擇 JSON / YAML 檔案\n或直接拖曳資料夾或檔案",
   "copy": "複製",
   "download": "下載",
   "downloadImage": "圖片",

@@ -4,7 +4,7 @@
   "hideLabel": "フォルダ／ファイルを検索して選択すると非表示にできます：",
   "inputPlaceholder": "ファイル、フォルダ、またはパスを入力",
   "noSuggestions": "一致する項目がありません",
-  "dropZoneTextAuto": "📁 左クリックでフォルダを選択｜📄 右クリックで JSON / YAML を選択、またはフォルダやファイルを直接ドラッグ＆ドロップ",
+  "dropZoneTextAuto": "📁 左クリックでフォルダを選択\n📄 右クリックで JSON / YAML ファイルを選択\nまたはフォルダやファイルをドラッグ＆ドロップ",
   "copy": "コピー",
   "download": "ダウンロード",
   "downloadImage": "画像",

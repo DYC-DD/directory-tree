@@ -23,29 +23,37 @@ export default function OutputPanel({
         <span>Markdown</span>
         <div className="button-group">
           {/* Copy */}
-          <button onClick={onCopy}>
-            <img src={`./images/copy-solid.png`} alt="copy" className="icon" />
-            {t("copy")}
+          <button onClick={onCopy} title={t("copy")} aria-label={t("copy")}>
+            <img src={`./images/copy-solid.png`} alt="" className="icon" />
+            <span className="button-label">{t("copy")}</span>
           </button>
 
           {/* Download Markdown */}
-          <button onClick={onDownloadMarkdown}>
+          <button
+            onClick={onDownloadMarkdown}
+            title={t("download")}
+            aria-label={t("download")}
+          >
             <img
               src={`./images/download-solid.png`}
-              alt="download"
+              alt=""
               className="icon"
             />
-            {t("download")}
+            <span className="button-label">{t("download")}</span>
           </button>
 
           {/* Download Image */}
-          <button onClick={onDownloadImage}>
+          <button
+            onClick={onDownloadImage}
+            title={t("downloadImage")}
+            aria-label={t("downloadImage")}
+          >
             <img
               src={`./images/image-solid.png`}
-              alt="image"
+              alt=""
               className="icon"
             />
-            {t("downloadImage")}
+            <span className="button-label">{t("downloadImage")}</span>
           </button>
 
           {/* Clear */}
@@ -53,13 +61,14 @@ export default function OutputPanel({
             onClick={onClear}
             disabled={!markdown?.trim()}
             title={t("clear")}
+            aria-label={t("clear")}
           >
             <img
               src={`./images/trash-solid.png`}
-              alt="clear"
+              alt=""
               className="icon"
             />
-            {t("clear")}
+            <span className="button-label">{t("clear")}</span>
           </button>
         </div>
       </div>

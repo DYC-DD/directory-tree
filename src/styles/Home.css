@@ -7,22 +7,32 @@
 
 /* ===== 標題區塊 ===== */
 .home-title {
-  font-size: 2.5rem;
+  width: 100%;
+  font-size: clamp(1.7rem, 3.8vw, 2.5rem);
   font-weight: 700;
-  line-height: 1.2;
-  margin: 4rem 0;
+  line-height: 1.22;
+  margin: clamp(2rem, 7vw, 4rem) auto;
   display: flex;
   flex-wrap: wrap;
-  gap: 10px;
+  gap: 0.35em;
   align-items: center;
   justify-content: center;
   color: #fff;
+  text-align: center;
+  text-wrap: balance;
+}
+
+.home-title-copy {
+  white-space: nowrap;
 }
 
 .rotating-chip {
   display: inline-flex;
   align-items: center;
   justify-content: center;
+  flex: 0 0 auto;
+  min-width: 4.7em;
+  box-sizing: border-box;
   padding: 0.25em 0.5em;
   background-color: #378af0;
   color: #fff;
@@ -37,6 +47,8 @@
 
 /* ===== ExcludeControls（排除項目） ===== */
 .checkbox {
+  width: 100%;
+  box-sizing: border-box;
   margin-bottom: 2em;
   font-size: 16px;
   color: #ececec;
@@ -67,15 +79,19 @@
 
 .custom-input-wrapper {
   position: relative;
+  flex: 1 1 280px;
+  max-width: 420px;
+  min-width: 0;
 }
 
 .custom-input {
+  box-sizing: border-box;
   padding: 0.3em 0.8em;
   border-radius: 12px;
   border: 1px solid #aaa;
   background-color: #1e1e1e;
   color: #fff;
-  width: 240px;
+  width: 100%;
   text-align: center;
 }
 
@@ -85,20 +101,24 @@
   flex-wrap: wrap;
   gap: 0.5em;
   justify-content: center;
+  min-width: 0;
 }
 
 .suggestion-list {
   position: absolute;
   top: 110%;
   left: 0;
+  box-sizing: border-box;
   background-color: #2a2a2a;
   color: #fff;
   border-radius: 12px;
   border: 1px solid #555;
   padding: 0.5em 0;
-  z-index: 10;
-  width: min(420px, calc(100vw - 2rem));
+  z-index: 20;
+  width: 100%;
   max-width: calc(100vw - 2rem);
+  max-height: min(320px, 45vh);
+  overflow-y: auto;
   white-space: normal;
   word-break: break-word;
   font-family: "Google Sans Code", monospace;
@@ -148,8 +168,13 @@
 
 /* ===== Drop Zone ===== */
 .drop-zone {
+  box-sizing: border-box;
+  width: 100%;
+  min-height: 14rem;
+  display: grid;
+  place-items: center;
   border: 2px dashed rgba(255, 255, 255, 0.4);
-  padding: 6em;
+  padding: 4rem 2rem;
   text-align: center;
   background: #1b1b1b;
   margin-bottom: 3em;
@@ -170,7 +195,10 @@
   position: relative;
   z-index: 1;
   font-size: 1.2rem;
+  line-height: 1.6;
+  max-width: 46rem;
   pointer-events: none;
+  white-space: pre-line;
 }
 
 .drop-zone:hover {
@@ -180,6 +208,9 @@
 
 /* ===== OutputPanel ===== */
 .output-container {
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
   background: #181618;
   border-radius: 10px;
   overflow: hidden;
@@ -192,6 +223,7 @@
   color: #ccc;
   padding: 0.8em 1em;
   display: flex;
+  gap: 0.75rem;
   justify-content: space-between;
   align-items: center;
   font-weight: bold;
@@ -200,7 +232,10 @@
 
 .button-group {
   display: flex;
+  flex-wrap: nowrap;
+  justify-content: flex-end;
   gap: 0.2em;
+  min-width: 0;
 }
 
 .output-header button {
@@ -209,13 +244,23 @@
   cursor: pointer;
   font-size: 14px;
   padding: 0 0.4em;
+  border-radius: 6px;
+  box-sizing: border-box;
   display: inline-flex;
   align-items: center;
-  gap: 0.2em;
+  justify-content: center;
+  gap: 0.3em;
+  white-space: nowrap;
   transition: color 0.2s ease;
 }
 
+.output-header button:disabled {
+  cursor: not-allowed;
+  opacity: 0.45;
+}
+
 .output-header .icon {
+  flex: 0 0 auto;
   width: 14px;
   height: 14px;
   display: inline-block;
@@ -233,15 +278,19 @@
 }
 
 .output {
+  box-sizing: border-box;
+  max-width: 100%;
   color: #fff;
-  padding: 1em;
+  padding-block: 1em;
+  padding-inline: 2em;
   white-space: pre;
   overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
   word-break: normal;
   font-family: "Google Sans Code", monospace;
   font-size: 14px;
   line-height: 1.4;
-  letter-spacing: 0.1em;
+  letter-spacing: 0;
   min-height: 26em;
 }
 
@@ -336,23 +385,37 @@
 /* ===== RWD ===== */
 @media (max-width: 768px) {
   .home-title {
-    font-size: 1.6em;
-    margin: 1em;
+    font-size: clamp(1.35rem, 6vw, 1.7rem);
+    line-height: 1.32;
+    margin: 1.25rem auto;
+    gap: 0.35rem 0.45rem;
+    padding-inline: 0.25rem;
+  }
+
+  .rotating-chip {
+    min-width: 4.5em;
+  }
+
+  .home-title-copy {
+    white-space: normal;
   }
 
   .checkbox {
     font-size: 14px;
     margin-bottom: 1.6em;
+    gap: 0.75rem;
+    align-items: stretch;
   }
 
-  .default-exclude-button {
-    display: none;
+  .checkbox > span {
+    flex: 1 1 100%;
   }
 
   .checkbox .custom-input-wrapper,
   .checkbox .default-excludes {
     width: 100%;
     flex: 1 1 100%;
+    max-width: none;
   }
 
   .checkbox .default-excludes {
@@ -364,18 +427,19 @@
 
   .custom-input {
     width: 100%;
-    max-width: 220px;
     font-size: 12px;
   }
 
   .suggestion-list {
-    left: 50%;
-    transform: translateX(-50%);
-    width: min(340px, calc(100vw - 2rem));
+    left: 0;
+    transform: none;
+    width: 100%;
+    max-width: 100%;
   }
 
   .drop-zone {
-    padding: 4em 1em;
+    min-height: 12rem;
+    padding: 3.5rem 1rem;
     margin: 2rem 0 2.5rem 0;
   }
 
@@ -399,10 +463,14 @@
 
   .output-header button {
     font-size: 12px;
+    padding: 0 0.4em;
   }
 
   .output {
-    min-height: 12em;
+    min-height: 18em;
+    font-size: 13px;
+    padding-block: 0.85rem;
+    padding-inline: 0.8rem;
   }
 
   .button-group {
@@ -411,5 +479,11 @@
 
   .note p {
     font-size: 14px;
+  }
+}
+
+@media (max-width: 520px) {
+  .output-header .button-label {
+    display: none;
   }
 }

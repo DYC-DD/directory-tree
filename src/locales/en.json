@@ -4,7 +4,7 @@
   "hideLabel": "Search and select a folder/file to hide:",
   "inputPlaceholder": "Enter file, folder, or path",
   "noSuggestions": "No matching items",
-  "dropZoneTextAuto": "📁 Left click to select a folder | 📄 Right click to select JSON / YAML, or drag and drop folders or files",
+  "dropZoneTextAuto": "📁 Left-click to select a folder\n📄 Right-click to select a JSON / YAML file\nor drag and drop folders or files",
   "copy": "Copy",
   "download": "Download",
   "downloadImage": "Image",
