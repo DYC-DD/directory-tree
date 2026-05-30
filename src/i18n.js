@@ -31,20 +31,6 @@ function getLngFromQuerystring() {
   }
 }
 
-// 取得瀏覽器偏好語言（依序嘗試 navigator.languages → navigator.language）
-function getLngFromBrowser() {
-  const langs = Array.isArray(navigator.languages)
-    ? navigator.languages
-    : [navigator.language];
-
-  for (const l of langs) {
-    const normalized = normalizeToSupportedLng(l);
-    if (normalized) return normalized;
-  }
-
-  return null;
-}
-
 // 決定初始語言
 function resolveInitialLanguage() {
   // 1) URL 優先
@@ -53,11 +39,7 @@ function resolveInitialLanguage() {
     return normalizeToSupportedLng(urlLng) || "en";
   }
 
-  // 2) 瀏覽器語言
-  const browserLng = getLngFromBrowser();
-  if (browserLng) return browserLng;
-
-  // 3) 最後 fallback
+  // 2) 預設語言固定為英文
   return "en";
 }
 

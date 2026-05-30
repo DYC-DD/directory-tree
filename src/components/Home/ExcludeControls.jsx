@@ -1,11 +1,13 @@
 import React from "react";
 
+import { getExcludeTargetLabel } from "../../utils/excludeUtils";
+
 /**
  * ExcludeControls
  * - 提供「資料夾模式」下的排除控制介面
  *   1. 內建項目快速切換（button）
  *   2. 自訂輸入排除（input + suggestion）
- *   3. 精確比對的自訂排除標籤顯示與移除
+ *   3. 自訂排除標籤顯示與移除
  */
 
 export default function ExcludeControls({
@@ -18,7 +20,7 @@ export default function ExcludeControls({
   filteredSuggestions,
   highlightIndex,
   onSuggestionClick,
-  customExcludesExact,
+  customExcludeTargets,
   onRemoveExcludeTag,
   t,
 }) {
@@ -45,15 +47,19 @@ export default function ExcludeControls({
         {inputValue && (
           <div className="suggestion-list">
             {filteredSuggestions.length > 0 ? (
-              filteredSuggestions.map((name, index) => (
+              filteredSuggestions.map((option, index) => (
                 <div
-                  key={name}
-                  onClick={() => onSuggestionClick(name)}
+                  key={option.id}
+                  onClick={() => onSuggestionClick(option)}
                   className={`suggestion-item ${
                     highlightIndex === index ? "highlighted" : ""
                   } ${index % 2 === 0 ? "even" : "odd"}`}
+                  title={option.displayPath}
                 >
-                  {name}
+                  <span className="suggestion-name">
+                    {option.type === "folder" ? `${option.name}/` : option.name}
+                  </span>
+                  <span className="suggestion-path">{option.displayPath}</span>
                 </div>
               ))
             ) : (
@@ -64,33 +70,33 @@ export default function ExcludeControls({
         )}
       </div>
 
-      {/* 內建可排除項目 */}
-      {Object.keys(excludedItems).map((item) => (
-        <button
-          key={item}
-          type="button"
-          onClick={() => onToggleExcludedItem(item)}
-          className={`exclude-button ${excludedItems[item] ? "active" : ""}`}
-        >
-          {item}
-        </button>
-      ))}
+      {/* 排除項目標籤列 */}
+      <div className="default-excludes">
+        {Object.keys(excludedItems).map((item) => (
+          <button
+            key={item}
+            type="button"
+            onClick={() => onToggleExcludedItem(item)}
+            className={`exclude-button default-exclude-button ${
+              excludedItems[item] ? "active" : ""
+            }`}
+          >
+            {item}
+          </button>
+        ))}
 
-      {/* 使用者自訂的標籤 */}
-      {customExcludesExact.length > 0 && (
-        <div className="custom-excludes">
-          {customExcludesExact.map((name) => (
-            <button
-              key={name}
-              type="button"
-              onClick={() => onRemoveExcludeTag(name)}
-              className="exclude-button active"
-            >
-              {name}
-            </button>
-          ))}
-        </div>
-      )}
+        {customExcludeTargets.map((target) => (
+          <button
+            key={target.id}
+            type="button"
+            onClick={() => onRemoveExcludeTag(target.id)}
+            className="exclude-button custom-exclude-button active"
+            title={getExcludeTargetLabel(target)}
+          >
+            {getExcludeTargetLabel(target)}
+          </button>
+        ))}
+      </div>
     </div>
   );
 }
