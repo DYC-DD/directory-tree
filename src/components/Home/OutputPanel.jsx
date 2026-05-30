@@ -1,5 +1,3 @@
-import React from "react";
-
 /**
  * OutputPanel
  * - 顯示轉換後的 Markdown 目錄樹內容
@@ -9,46 +7,6 @@ import React from "react";
  *   - 下載圖片
  *   - 清除內容
  */
-
-function splitLineWithSizeSuffix(line) {
-  const sizeRegex = /^(.*?)(\s\((?:0|\d+(?:\.\d+)?)\s(?:B|KB|MB|GB)\))$/;
-
-  const match = line.match(sizeRegex);
-  if (!match) return null;
-
-  return {
-    mainText: match[1],
-    sizeText: match[2],
-  };
-}
-
-function renderMarkdownWithColoredSize(markdown) {
-  if (!markdown) return "";
-
-  const lines = markdown.split("\n");
-
-  return lines.map((line, idx) => {
-    const parts = splitLineWithSizeSuffix(line);
-    const isLastLine = idx === lines.length - 1;
-
-    if (!parts) {
-      return (
-        <React.Fragment key={idx}>
-          {line}
-          {!isLastLine && <br />}
-        </React.Fragment>
-      );
-    }
-
-    return (
-      <React.Fragment key={idx}>
-        {parts.mainText}
-        <span className="size-info">{parts.sizeText}</span>
-        {!isLastLine && <br />}
-      </React.Fragment>
-    );
-  });
-}
 
 export default function OutputPanel({
   markdown,
@@ -107,7 +65,7 @@ export default function OutputPanel({
       </div>
 
       <pre className="output" ref={textRef}>
-        {renderMarkdownWithColoredSize(markdown)}
+        {markdown}
       </pre>
     </div>
   );

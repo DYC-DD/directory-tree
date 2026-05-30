@@ -16,6 +16,12 @@ import ScrambledText from "../components/ScrambledText/ScrambledText";
 import { getJsonBaseName, getYamlBaseName } from "../utils/fileNameUtils";
 import { renderObjectTreeMarkdown } from "../utils/objectTreeMarkdownUtils";
 import { generateFolderTreeMarkdown } from "../utils/treeMarkdownUtils";
+import {
+  buildExcludeOptions,
+  createExcludeTargetFromOption,
+  filterFilesByExcludes,
+  getExcludeOptionMatches,
+} from "../utils/excludeUtils";
 
 function Home() {
   // i18n
@@ -33,21 +39,19 @@ function Home() {
   const [excludedItems, setExcludedItems] = useState({
     ".git": false,
     ".DS_Store": false,
+    ".venv": false,
     node_modules: false,
   });
-  const [customExcludesExact, setCustomExcludesExact] = useState([]);
+  const [customExcludeTargets, setCustomExcludeTargets] = useState([]);
 
   // 自訂排除輸入輔助
   const [inputValue, setInputValue] = useState("");
-  const [allNames, setAllNames] = useState([]);
+  const [excludeOptions, setExcludeOptions] = useState([]);
   const [highlightIndex, setHighlightIndex] = useState(-1);
 
   // 檔名/根節點顯示用
   const [rootFolderName, setRootFolderName] = useState("directory_tree");
   const [uploadFileName, setUploadFileName] = useState(null);
-
-  // folder 模式：是否顯示檔案大小
-  const [showFileSize, setShowFileSize] = useState(false);
 
   // Refs
   const textRef = useRef(null);
@@ -56,35 +60,31 @@ function Home() {
 
   // folder 模式
   useEffect(() => {
-    if (files.length === 0) return;
-    if (effectiveMode !== "folder") return;
+    if (files.length === 0 || effectiveMode !== "folder") {
+      setExcludeOptions([]);
+      return;
+    }
 
-    // 收集所有節點名稱
-    const uniqueNames = new Set();
-    files.forEach((file) => {
-      file.path.split("/").forEach((p) => uniqueNames.add(p));
-    });
-    setAllNames(Array.from(uniqueNames));
+    setExcludeOptions(buildExcludeOptions(files));
 
     // 組合目前啟用的排除清單
-    const activeExcludes = [
-      ...Object.keys(excludedItems).filter((key) => excludedItems[key]),
-      ...customExcludesExact,
-    ];
+    const activeNameExcludes = Object.keys(excludedItems).filter(
+      (key) => excludedItems[key]
+    );
 
-    // 依路徑每一段做精準排除
-    const filteredFiles = files.filter((file) => {
-      const parts = file.path.split("/");
-      return !parts.some((part) => activeExcludes.includes(part));
-    });
+    const filteredFiles = filterFilesByExcludes(
+      files,
+      activeNameExcludes,
+      customExcludeTargets
+    );
 
     // 生成 markdown
     const { markdown: md, rootFolderName: rootName } =
-      generateFolderTreeMarkdown(filteredFiles, { showFileSize });
+      generateFolderTreeMarkdown(filteredFiles);
 
     setRootFolderName(rootName);
     setMarkdown(md);
-  }, [excludedItems, customExcludesExact, files, effectiveMode, showFileSize]);
+  }, [excludedItems, customExcludeTargets, files, effectiveMode]);
 
   // 判斷單一檔案是 json / yaml / unknown
   const detectModeFromSingleFile = (file) => {
@@ -95,29 +95,53 @@ function Home() {
   };
 
   // folder：遞迴遍歷拖曳資料夾
+  const readAllDirectoryEntries = (dirReader) => {
+    return new Promise((resolve, reject) => {
+      const entries = [];
+
+      const readNextBatch = () => {
+        dirReader.readEntries((batch) => {
+          if (batch.length === 0) {
+            resolve(entries);
+            return;
+          }
+
+          entries.push(...batch);
+          readNextBatch();
+        }, reject);
+      };
+
+      readNextBatch();
+    });
+  };
+
   const traverseFileTree = async (entry, path, result) => {
-    return new Promise((resolve) => {
+    return new Promise((resolve, reject) => {
       if (entry.isFile) {
         entry.file((file) => {
           result.push({
             path: path + file.name,
-            size: file.size,
           });
           resolve();
-        });
+        }, reject);
         return;
       }
 
       // 資料夾：讀取子節點並遞迴
       if (entry.isDirectory) {
         const dirReader = entry.createReader();
-        dirReader.readEntries(async (entries) => {
-          for (const child of entries) {
-            await traverseFileTree(child, path + entry.name + "/", result);
-          }
-          resolve();
-        });
+        readAllDirectoryEntries(dirReader)
+          .then(async (entries) => {
+            for (const child of entries) {
+              await traverseFileTree(child, path + entry.name + "/", result);
+            }
+            resolve();
+          })
+          .catch(reject);
+        return;
       }
+
+      resolve();
     });
   };
 
@@ -195,11 +219,17 @@ function Home() {
 
       if (hasDirectory && items.length > 0) {
         const filesArray = [];
-        for (const it of items) {
-          const entry = it.webkitGetAsEntry?.();
-          if (entry) {
-            await traverseFileTree(entry, "", filesArray);
+        try {
+          for (const it of items) {
+            const entry = it.webkitGetAsEntry?.();
+            if (entry) {
+              await traverseFileTree(entry, "", filesArray);
+            }
           }
+        } catch (err) {
+          console.error("資料夾讀取失敗：", err);
+          setMarkdown(t("unsupportedInput"));
+          return;
         }
         setFiles(filesArray);
         return;
@@ -208,7 +238,6 @@ function Home() {
       // 無資料夾結構：用檔名當 path
       const filesArray = fileList.map((f) => ({
         path: f.name,
-        size: f.size,
       }));
       setFiles(filesArray);
       return;
@@ -244,7 +273,6 @@ function Home() {
 
     const filesArray = fileList.map((file) => ({
       path: file.webkitRelativePath,
-      size: file.size,
     }));
 
     setDetectedMode("folder");
@@ -278,19 +306,29 @@ function Home() {
     }));
   };
 
-  // Suggestion 清單：最多 10 筆，並排除已加入的 tag
-  const filteredSuggestions = allNames
-    .filter(
-      (name) =>
-        name.toLowerCase().includes(inputValue.toLowerCase()) &&
-        !customExcludesExact.includes(name)
-    )
-    .slice(0, 10);
+  // Suggestion 清單：最多 10 筆，依完整路徑排序並排除已加入的 tag
+  const filteredSuggestions = getExcludeOptionMatches(
+    excludeOptions,
+    inputValue,
+    customExcludeTargets
+  ).slice(0, 10);
+
+  const addCustomExcludeTarget = (target) => {
+    if (!target) return;
+
+    setCustomExcludeTargets((prev) => {
+      if (prev.some((item) => item.id === target.id)) return prev;
+      return [...prev, target];
+    });
+    setInputValue("");
+    setHighlightIndex(-1);
+  };
 
   // 自訂排除輸入框鍵盤操作
   const handleInputKeyDown = (e) => {
     if (e.key === "ArrowDown") {
       e.preventDefault();
+      if (filteredSuggestions.length === 0) return;
       setHighlightIndex((prev) =>
         prev < filteredSuggestions.length - 1 ? prev + 1 : 0
       );
@@ -299,32 +337,35 @@ function Home() {
 
     if (e.key === "ArrowUp") {
       e.preventDefault();
+      if (filteredSuggestions.length === 0) return;
       setHighlightIndex((prev) =>
         prev > 0 ? prev - 1 : filteredSuggestions.length - 1
       );
       return;
     }
 
-    if (e.key === "Enter" && highlightIndex >= 0) {
-      const selected = filteredSuggestions[highlightIndex];
-      if (selected) {
-        setCustomExcludesExact((prev) => [...prev, selected]);
-        setInputValue("");
-        setHighlightIndex(-1);
-      }
+    if (e.key === "Enter") {
+      e.preventDefault();
+
+      const selected =
+        highlightIndex >= 0
+          ? filteredSuggestions[highlightIndex]
+          : filteredSuggestions[0];
+
+      addCustomExcludeTarget(createExcludeTargetFromOption(selected));
     }
   };
 
   // suggestion 點擊加入 tag
-  const handleSuggestionClick = (name) => {
-    setCustomExcludesExact((prev) => [...prev, name]);
-    setInputValue("");
-    setHighlightIndex(-1);
+  const handleSuggestionClick = (option) => {
+    addCustomExcludeTarget(createExcludeTargetFromOption(option));
   };
 
   // tag 移除
-  const handleRemoveExcludeTag = (name) => {
-    setCustomExcludesExact((prev) => prev.filter((n) => n !== name));
+  const handleRemoveExcludeTag = (targetId) => {
+    setCustomExcludeTargets((prev) =>
+      prev.filter((target) => target.id !== targetId)
+    );
   };
 
   // 輸出操作：Copy / Download Markdown / Download Image
@@ -346,7 +387,10 @@ function Home() {
       effectiveMode === "json" || effectiveMode === "yaml"
         ? `${uploadFileName || "tree"}.md`
         : `${rootFolderName}.md`;
-    const blob = new Blob([markdown], { type: "text/markdown;charset=utf-8" });
+    const downloadContent = `\`\`\`bash\n${markdown.trimEnd()}\n\`\`\`\n`;
+    const blob = new Blob([downloadContent], {
+      type: "text/markdown;charset=utf-8",
+    });
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
     a.href = url;
@@ -396,7 +440,7 @@ function Home() {
     setUploadFileName(null);
     setRootFolderName("directory_tree");
     setDetectedMode(null);
-    setAllNames([]);
+    setExcludeOptions([]);
     setInputValue("");
     setHighlightIndex(-1);
     if (folderInputRef.current) folderInputRef.current.value = "";
@@ -429,19 +473,6 @@ function Home() {
         {t("home.title.suffix")}
       </h1>
 
-      {/* folder 模式才顯示：是否顯示檔案大小 */}
-      {effectiveMode === "folder" && (
-        <div className="file-size">
-          <div>{t("toggleSizeHint")}</div>
-          <button
-            onClick={() => setShowFileSize((prev) => !prev)}
-            className={`file-size-button ${showFileSize ? "active" : ""}`}
-          >
-            {t(showFileSize ? "toggleSizeOn" : "toggleSizeOff")}
-          </button>
-        </div>
-      )}
-
       {/* folder 模式才顯示：排除控制 */}
       {effectiveMode === "folder" && (
         <ExcludeControls
@@ -457,7 +488,7 @@ function Home() {
           filteredSuggestions={filteredSuggestions}
           highlightIndex={highlightIndex}
           onSuggestionClick={handleSuggestionClick}
-          customExcludesExact={customExcludesExact}
+          customExcludeTargets={customExcludeTargets}
           onRemoveExcludeTag={handleRemoveExcludeTag}
           t={t}
         />
