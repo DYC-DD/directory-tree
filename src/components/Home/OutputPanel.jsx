@@ -10,13 +10,18 @@
 
 export default function OutputPanel({
   markdown,
+  treeLines = [],
   textRef,
+  onTreeItemClick,
   onCopy,
   onDownloadMarkdown,
   onDownloadImage,
   onClear,
   t,
 }) {
+  const hasInteractiveTree =
+    treeLines.length > 0 && typeof onTreeItemClick === "function";
+
   return (
     <div className="output-container">
       <div className="output-header">
@@ -73,8 +78,26 @@ export default function OutputPanel({
         </div>
       </div>
 
-      <pre className="output" ref={textRef}>
-        {markdown}
+      <pre
+        className={`output ${hasInteractiveTree ? "output--tree" : ""}`}
+        ref={textRef}
+      >
+        {hasInteractiveTree
+          ? treeLines.map((line, index) => (
+              <button
+                key={`${line.target.id}:${index}`}
+                type="button"
+                className="output-tree-line"
+                onClick={() => onTreeItemClick(line.target)}
+                title={t("hideTreeItem", { path: line.target.displayPath })}
+                aria-label={t("hideTreeItem", {
+                  path: line.target.displayPath,
+                })}
+              >
+                {line.text}
+              </button>
+            ))
+          : markdown}
       </pre>
     </div>
   );

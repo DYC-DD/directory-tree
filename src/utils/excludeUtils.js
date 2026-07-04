@@ -122,11 +122,42 @@ export function filterFilesByExcludes(files, nameExcludes, customTargets) {
   });
 }
 
+export function getVisibleFolderPaths(files, nameExcludes, customTargets) {
+  const nameExcludeSet = new Set(nameExcludes);
+  const folderPathSet = new Set();
+
+  files.forEach((file) => {
+    const parts = splitPath(file.path);
+
+    parts.slice(0, -1).forEach((_, index) => {
+      const folderParts = parts.slice(0, index + 1);
+      const folderPath = folderParts.join("/");
+
+      if (folderParts.some((part) => nameExcludeSet.has(part))) return;
+
+      const isHiddenFolder = customTargets.some((target) =>
+        folderMatchesTarget(folderPath, target)
+      );
+
+      if (!isHiddenFolder) folderPathSet.add(folderPath);
+    });
+  });
+
+  return Array.from(folderPathSet);
+}
+
 function fileMatchesTarget(path, target) {
   const targetPath = normalizePathValue(target.path);
   if (!targetPath) return false;
 
   if (target.type === "file") return path === targetPath;
+
+  return path === targetPath || path.startsWith(`${targetPath}/`);
+}
+
+function folderMatchesTarget(path, target) {
+  const targetPath = normalizePathValue(target.path);
+  if (!targetPath || target.type !== "folder") return false;
 
   return path === targetPath || path.startsWith(`${targetPath}/`);
 }

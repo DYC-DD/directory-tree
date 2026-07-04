@@ -21,6 +21,7 @@ import {
   createExcludeTargetFromOption,
   filterFilesByExcludes,
   getExcludeOptionMatches,
+  getVisibleFolderPaths,
 } from "../utils/excludeUtils";
 
 function Home() {
@@ -34,6 +35,7 @@ function Home() {
   // 主要輸出與資料來源
   const [markdown, setMarkdown] = useState("");
   const [files, setFiles] = useState([]);
+  const [folderTreeLines, setFolderTreeLines] = useState([]);
 
   // 預設排除項目
   const [excludedItems, setExcludedItems] = useState({
@@ -62,6 +64,7 @@ function Home() {
   useEffect(() => {
     if (files.length === 0 || effectiveMode !== "folder") {
       setExcludeOptions([]);
+      setFolderTreeLines([]);
       return;
     }
 
@@ -77,13 +80,21 @@ function Home() {
       activeNameExcludes,
       customExcludeTargets
     );
+    const visibleFolderPaths = getVisibleFolderPaths(
+      files,
+      activeNameExcludes,
+      customExcludeTargets
+    );
 
     // 生成 markdown
-    const { markdown: md, rootFolderName: rootName } =
-      generateFolderTreeMarkdown(filteredFiles);
+    const { markdown: md, rootFolderName: rootName, lines } =
+      generateFolderTreeMarkdown(filteredFiles, {
+        folderPaths: visibleFolderPaths,
+      });
 
     setRootFolderName(rootName);
     setMarkdown(md);
+    setFolderTreeLines(lines);
   }, [excludedItems, customExcludeTargets, files, effectiveMode]);
 
   // 判斷單一檔案是 json / yaml / unknown
@@ -170,9 +181,11 @@ function Home() {
 
         setUploadFileName(rootName);
         setMarkdown(md);
+        setFolderTreeLines([]);
       } catch (err) {
         console.error("Object tree 解析失敗：", err);
         setMarkdown("");
+        setFolderTreeLines([]);
       }
     };
 
@@ -361,6 +374,12 @@ function Home() {
     addCustomExcludeTarget(createExcludeTargetFromOption(option));
   };
 
+  // 直接點擊輸出中的 folder tree 項目來加入排除
+  const handleTreeItemClick = (target) => {
+    if (effectiveMode !== "folder") return;
+    addCustomExcludeTarget(target);
+  };
+
   // tag 移除
   const handleRemoveExcludeTag = (targetId) => {
     setCustomExcludeTargets((prev) =>
@@ -441,6 +460,7 @@ function Home() {
     setRootFolderName("directory_tree");
     setDetectedMode(null);
     setExcludeOptions([]);
+    setFolderTreeLines([]);
     setInputValue("");
     setHighlightIndex(-1);
     if (folderInputRef.current) folderInputRef.current.value = "";
@@ -527,7 +547,9 @@ function Home() {
       {/* 輸出面板 */}
       <OutputPanel
         markdown={markdown}
+        treeLines={effectiveMode === "folder" ? folderTreeLines : []}
         textRef={textRef}
+        onTreeItemClick={handleTreeItemClick}
         onCopy={copyToClipboard}
         onDownloadMarkdown={downloadMarkdown}
         onDownloadImage={downloadImage}

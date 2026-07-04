@@ -2,6 +2,17 @@
 
 This changelog follows the [Keep a Changelog](https://keepachangelog.com/zh-TW/1.1.0/) format to track version updates.
 
+## [2.1.0] - 2026-07-04
+
+### Added
+
+- 新增可直接點擊 Markdown 目錄樹中的檔案或資料夾來加入隱藏清單，行為與搜尋輸入隱藏共用同一套排除邏輯與標籤管理
+- 點擊資料夾時會隱藏該資料夾與底下所有子項目；點擊檔案時只會隱藏該檔案，讓排除操作更快速直覺
+
+### Fixed
+
+- 修正隱藏資料夾中唯一檔案時，父資料夾會因為沒有剩餘子檔而一併從目錄樹消失的問題；現在未被明確隱藏的空資料夾會保留在輸出中
+
 ## [2.0.1] - 2026-05-30
 
 ### Added

@@ -9,6 +9,7 @@
   "download": "下載",
   "downloadImage": "圖片",
   "clear": "清除",
+  "hideTreeItem": "點擊隱藏 {{path}}",
   "note1": "本網站為純前端應用程式。",
   "note2": "所有操作皆在您的瀏覽器中執行。",
   "note3": "不會上傳或儲存任何資料到後端做使用，請安心使用。",

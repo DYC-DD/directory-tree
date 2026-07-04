@@ -1,4 +1,4 @@
-export function buildFileTree(files) {
+export function buildFileTree(files, folderPaths = []) {
   const root = {};
 
   let rootFolderName = "directory_tree";
@@ -6,6 +6,19 @@ export function buildFileTree(files) {
     const firstPath = files[0].path;
     const parts = firstPath.split("/");
     if (parts.length > 1) rootFolderName = parts[0];
+  } else if (folderPaths.length > 0) {
+    rootFolderName = folderPaths[0].split("/")[0] || rootFolderName;
+  }
+
+  for (const folderPath of folderPaths) {
+    const parts = folderPath.split("/").filter(Boolean);
+    let current = root;
+
+    parts.forEach((part) => {
+      const key = `${part}/`;
+      current[key] ??= {};
+      current = current[key];
+    });
   }
 
   for (const file of files) {
@@ -30,8 +43,19 @@ export function buildFileTree(files) {
 }
 
 export function renderTreeMarkdown(tree, indent = "", isRoot = true) {
-  let md = "";
+  const lines = renderTreeMarkdownLines(tree, indent, isRoot);
+  return lines.length > 0
+    ? `${lines.map((line) => line.text).join("\n")}\n`
+    : "";
+}
 
+export function renderTreeMarkdownLines(
+  tree,
+  indent = "",
+  isRoot = true,
+  parentPath = ""
+) {
+  const lines = [];
   const entries = Object.entries(tree).sort(([a], [b]) => {
     const isDirA = tree[a] !== null && typeof tree[a] === "object";
     const isDirB = tree[b] !== null && typeof tree[b] === "object";
@@ -43,19 +67,32 @@ export function renderTreeMarkdown(tree, indent = "", isRoot = true) {
   entries.forEach(([key, value], idx) => {
     const isLast = idx === entries.length - 1;
     const prefix = isRoot ? "" : indent + (isLast ? "└── " : "├── ");
+    const isFolder = value !== null && typeof value === "object";
+    const name = isFolder ? key.replace(/\/$/, "") : key;
+    const path = parentPath ? `${parentPath}/${name}` : name;
 
-    md += `${prefix}${key}\n`;
+    lines.push({
+      text: `${prefix}${key}`,
+      target: {
+        id: `${isFolder ? "folder" : "file"}:${path}`,
+        type: isFolder ? "folder" : "file",
+        path,
+        name,
+        parentPath,
+        displayPath: isFolder ? `${path}/` : path,
+      },
+    });
 
-    if (value !== null && typeof value === "object") {
+    if (isFolder) {
       const deeperIndent = isRoot ? "" : indent + (isLast ? "    " : "│   ");
-      md += renderTreeMarkdown(value, deeperIndent, false);
+      lines.push(...renderTreeMarkdownLines(value, deeperIndent, false, path));
     }
   });
 
-  return md;
+  return lines;
 }
 
-export function generateFolderTreeMarkdown(files) {
+export function generateFolderTreeMarkdown(files, { folderPaths = [] } = {}) {
   const sorted = [...files].sort((a, b) => {
     const aParts = a.path.split("/");
     const bParts = b.path.split("/");
@@ -63,9 +100,18 @@ export function generateFolderTreeMarkdown(files) {
       ? a.path.localeCompare(b.path)
       : aParts.length - bParts.length;
   });
+  const sortedFolderPaths = [...folderPaths].sort((a, b) => {
+    const aParts = a.split("/");
+    const bParts = b.split("/");
+    return aParts.length === bParts.length
+      ? a.localeCompare(b)
+      : aParts.length - bParts.length;
+  });
 
-  const { tree, rootFolderName } = buildFileTree(sorted);
-  const markdown = renderTreeMarkdown(tree);
+  const { tree, rootFolderName } = buildFileTree(sorted, sortedFolderPaths);
+  const lines = renderTreeMarkdownLines(tree);
+  const markdown =
+    lines.length > 0 ? `${lines.map((line) => line.text).join("\n")}\n` : "";
 
-  return { markdown, rootFolderName };
+  return { markdown, rootFolderName, lines };
 }
