@@ -66,14 +66,19 @@ export function buildExcludeOptions(files) {
   });
 }
 
-export function getExcludeOptionMatches(options, inputValue, selectedTargets) {
+export function getExcludeOptionMatches(
+  options,
+  inputValue,
+  selectedTargets,
+  nameExcludes = []
+) {
   const query = normalizePathValue(inputValue).toLowerCase();
   if (!query) return [];
 
-  const selectedIds = new Set(selectedTargets.map((target) => target.id));
+  const nameExcludeSet = new Set(nameExcludes);
 
   return options
-    .filter((option) => !selectedIds.has(createExcludeTarget(option).id))
+    .filter((option) => !optionIsHidden(option, selectedTargets, nameExcludeSet))
     .filter((option) => {
       return (
         option.normalizedName.includes(query) ||
@@ -92,6 +97,25 @@ export function getExcludeOptionMatches(options, inputValue, selectedTargets) {
 
       return a.path.localeCompare(b.path);
     });
+}
+
+function optionIsHidden(option, selectedTargets, nameExcludeSet) {
+  const parts = splitPath(option.path);
+  if (parts.some((part) => nameExcludeSet.has(part))) return true;
+
+  return selectedTargets.some((target) => optionMatchesTarget(option, target));
+}
+
+function optionMatchesTarget(option, target) {
+  const targetPath = normalizePathValue(target.path);
+  const optionPath = normalizePathValue(option.path);
+  if (!targetPath || !optionPath) return false;
+
+  if (target.type === "file") {
+    return option.type === "file" && optionPath === targetPath;
+  }
+
+  return optionPath === targetPath || optionPath.startsWith(`${targetPath}/`);
 }
 
 function getExcludeOptionScore(option, query) {

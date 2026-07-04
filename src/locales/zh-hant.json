@@ -2,6 +2,8 @@
   "home.title.prefix": "自動將",
   "home.title.suffix": "轉換為 Markdown 目錄樹",
   "hideLabel": "搜尋並點選資料夾/檔案即可隱藏：",
+  "hideListShowMore": "顯示其餘 {{count}} 個",
+  "hideListCollapse": "收折",
   "inputPlaceholder": "輸入檔名、資料夾或路徑",
   "noSuggestions": "無相符項目",
   "dropZoneTextAuto": "📁 左鍵選擇資料夾\n📄 右鍵選擇 JSON / YAML 檔案\n或直接拖曳資料夾或檔案",

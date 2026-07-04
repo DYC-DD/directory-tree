@@ -2,6 +2,8 @@
   "home.title.prefix": "自動で",
   "home.title.suffix": "Markdown ディレクトリツリーに変換",
   "hideLabel": "フォルダ／ファイルを検索して選択すると非表示にできます：",
+  "hideListShowMore": "残り {{count}} 件を表示",
+  "hideListCollapse": "折りたたむ",
   "inputPlaceholder": "ファイル、フォルダ、またはパスを入力",
   "noSuggestions": "一致する項目がありません",
   "dropZoneTextAuto": "📁 左クリックでフォルダを選択\n📄 右クリックで JSON / YAML ファイルを選択\nまたはフォルダやファイルをドラッグ＆ドロップ",

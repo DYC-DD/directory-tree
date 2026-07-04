@@ -2,6 +2,8 @@
   "home.title.prefix": "Automatically convert",
   "home.title.suffix": "to Markdown directory trees",
   "hideLabel": "Search and select a folder/file to hide:",
+  "hideListShowMore": "Show {{count}} more",
+  "hideListCollapse": "Collapse",
   "inputPlaceholder": "Enter file, folder, or path",
   "noSuggestions": "No matching items",
   "dropZoneTextAuto": "📁 Left-click to select a folder\n📄 Right-click to select a JSON / YAML file\nor drag and drop folders or files",

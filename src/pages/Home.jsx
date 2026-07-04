@@ -13,9 +13,6 @@ import PixelCard from "../components/PixelCard/PixelCard";
 import RotatingText from "../components/RotatingText/RotatingText";
 import ScrambledText from "../components/ScrambledText/ScrambledText";
 
-import { getJsonBaseName, getYamlBaseName } from "../utils/fileNameUtils";
-import { renderObjectTreeMarkdown } from "../utils/objectTreeMarkdownUtils";
-import { generateFolderTreeMarkdown } from "../utils/treeMarkdownUtils";
 import {
   buildExcludeOptions,
   createExcludeTargetFromOption,
@@ -23,6 +20,9 @@ import {
   getExcludeOptionMatches,
   getVisibleFolderPaths,
 } from "../utils/excludeUtils";
+import { getJsonBaseName, getYamlBaseName } from "../utils/fileNameUtils";
+import { renderObjectTreeMarkdown } from "../utils/objectTreeMarkdownUtils";
+import { generateFolderTreeMarkdown } from "../utils/treeMarkdownUtils";
 
 function Home() {
   // i18n
@@ -87,10 +87,13 @@ function Home() {
     );
 
     // 生成 markdown
-    const { markdown: md, rootFolderName: rootName, lines } =
-      generateFolderTreeMarkdown(filteredFiles, {
-        folderPaths: visibleFolderPaths,
-      });
+    const {
+      markdown: md,
+      rootFolderName: rootName,
+      lines,
+    } = generateFolderTreeMarkdown(filteredFiles, {
+      folderPaths: visibleFolderPaths,
+    });
 
     setRootFolderName(rootName);
     setMarkdown(md);
@@ -320,11 +323,16 @@ function Home() {
   };
 
   // Suggestion 清單：最多 10 筆，依完整路徑排序並排除已加入的 tag
+  const activeNameExcludes = Object.keys(excludedItems).filter(
+    (key) => excludedItems[key]
+  );
+
   const filteredSuggestions = getExcludeOptionMatches(
     excludeOptions,
     inputValue,
-    customExcludeTargets
-  ).slice(0, 10);
+    customExcludeTargets,
+    activeNameExcludes
+  ).slice(0, 20);
 
   const addCustomExcludeTarget = (target) => {
     if (!target) return;

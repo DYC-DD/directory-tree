@@ -77,6 +77,21 @@
   background-color: #555;
 }
 
+.exclude-list-toggle {
+  border-color: #79b7ff;
+  background-color: #21456f;
+  color: #f7fbff;
+}
+
+.exclude-list-toggle:hover {
+  background-color: #2a5d98;
+}
+
+.exclude-list-toggle.active {
+  border-color: #aaa;
+  background-color: #3a3a3a;
+}
+
 .custom-input-wrapper {
   position: relative;
   flex: 1 1 280px;
@@ -123,6 +138,27 @@
   word-break: break-word;
   font-family: "Google Sans Code", monospace;
   text-align: left;
+  scrollbar-width: thin;
+  scrollbar-color: #c8c8c8 #242424;
+}
+
+.suggestion-list::-webkit-scrollbar {
+  width: 8px;
+}
+
+.suggestion-list::-webkit-scrollbar-track {
+  background: #242424;
+  border-radius: 999px;
+}
+
+.suggestion-list::-webkit-scrollbar-thumb {
+  background: linear-gradient(180deg, #d6d6d6, #9f9f9f);
+  border: 2px solid #242424;
+  border-radius: 999px;
+}
+
+.suggestion-list::-webkit-scrollbar-thumb:hover {
+  background: linear-gradient(180deg, #f2f2f2, #c7c7c7);
 }
 
 .suggestion-item {
