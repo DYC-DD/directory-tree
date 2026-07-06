@@ -9,6 +9,7 @@ This changelog follows the [Keep a Changelog](https://keepachangelog.com/zh-TW/1
 - 新增可直接點擊 Markdown 目錄樹中的檔案或資料夾來加入隱藏清單，行為與搜尋輸入隱藏共用同一套排除邏輯與標籤管理
 - 點擊資料夾時會隱藏該資料夾與底下所有子項目；點擊檔案時只會隱藏該檔案，讓排除操作更快速直覺
 - 新增隱藏項目清單收折功能，當隱藏標籤超過 6 個時會先收折並顯示剩餘數量，避免清單過長影響頁面瀏覽
+- 新增首頁標題 Morphing Text 動畫效果，讓 `Folder`、`JSON`、`YAML` 在標題中輪換顯示
 
 ### Changed
 
@@ -18,6 +19,11 @@ This changelog follows the [Keep a Changelog](https://keepachangelog.com/zh-TW/1
 - 優化大量檔案目錄樹的輸出渲染，改以單一 Markdown 文字節點呈現完整內容，降低大量互動節點造成的頁面卡頓，同時保留點擊隱藏項目的操作
 - 改善排除選項建立、搜尋推薦、檔案篩選與目錄樹 Markdown 產生流程，減少大量路徑資料下的重複計算與排序成本
 - 下載圖片用的截圖 DOM 改為按下下載圖片時才建立，避免大型目錄樹在平常瀏覽時同步渲染隱藏截圖內容
+- 將首頁主標題調整為 `Folder / JSON / YAML to Directory tree` 的簡潔文案，並放大標題尺寸、統一 morphing 文字與標題文字的字重與顏色
+
+### Removed
+
+- 移除未使用的 `RotatingText` 元件與樣式檔，首頁標題改由 `MorphingText` 呈現
 
 ### Fixed
 

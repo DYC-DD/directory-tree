@@ -1,0 +1,30 @@
+.morphing-text {
+  position: relative;
+  display: inline-block;
+  width: 3.9em;
+  height: 1.05em;
+  color: inherit;
+  font: inherit;
+  font-weight: 900;
+  line-height: 1;
+  text-align: right;
+  vertical-align: baseline;
+  filter: url("#morphing-text-threshold") blur(0.6px);
+}
+
+.morphing-text-layer {
+  position: absolute;
+  inset: 0;
+  display: inline-block;
+  width: 100%;
+  margin: auto;
+  will-change: filter, opacity;
+}
+
+.morphing-text-filters {
+  position: fixed;
+  width: 0;
+  height: 0;
+  overflow: hidden;
+  pointer-events: none;
+}

@@ -9,8 +9,8 @@ import ExcludeControls from "../components/Home/ExcludeControls";
 import HiddenFileInput from "../components/Home/HiddenFileInput";
 import OutputPanel from "../components/Home/OutputPanel";
 import ScreenshotWrapper from "../components/Home/ScreenshotWrapper";
+import MorphingText from "../components/MorphingText/MorphingText";
 import PixelCard from "../components/PixelCard/PixelCard";
-import RotatingText from "../components/RotatingText/RotatingText";
 import ScrambledText from "../components/ScrambledText/ScrambledText";
 
 import {
@@ -547,20 +547,11 @@ function Home() {
     <div className="home">
       {/* 主標題 */}
       <h1 className="home-title">
-        <span className="home-title-copy">{t("home.title.prefix")}</span>
-        <RotatingText
+        <MorphingText
+          className="home-title-morph"
           texts={["Folder", "JSON", "YAML"]}
-          mainClassName="rotating-chip"
-          staggerFrom="last"
-          initial={{ y: "100%" }}
-          animate={{ y: 0 }}
-          exit={{ y: "-120%" }}
-          staggerDuration={0.025}
-          splitLevelClassName="rotating-chip-split"
-          transition={{ type: "spring", damping: 30, stiffness: 400 }}
-          rotationInterval={2000}
         />
-        <span className="home-title-copy">{t("home.title.suffix")}</span>
+        <span className="home-title-copy">to Directory tree</span>
       </h1>
 
       {/* folder 模式才顯示：排除控制 */}
