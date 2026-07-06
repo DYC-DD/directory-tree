@@ -1,6 +1,6 @@
 import { toPng } from "html-to-image";
 import YAML from "js-yaml";
-import React, { useEffect, useRef, useState } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 
 import "../styles/Home.css";
@@ -48,8 +48,8 @@ function Home() {
 
   // 自訂排除輸入輔助
   const [inputValue, setInputValue] = useState("");
-  const [excludeOptions, setExcludeOptions] = useState([]);
   const [highlightIndex, setHighlightIndex] = useState(-1);
+  const [screenshotJob, setScreenshotJob] = useState(null);
 
   // 檔名/根節點顯示用
   const [rootFolderName, setRootFolderName] = useState("directory_tree");
@@ -59,21 +59,37 @@ function Home() {
   const textRef = useRef(null);
   const folderInputRef = useRef(null);
   const fileInputRef = useRef(null);
+  const screenshotWrapperRef = useRef(null);
+  const processedScreenshotJobIdsRef = useRef(new Set());
+
+  const activeNameExcludes = useMemo(
+    () => Object.keys(excludedItems).filter((key) => excludedItems[key]),
+    [excludedItems]
+  );
+
+  const excludeOptions = useMemo(() => {
+    if (files.length === 0 || effectiveMode !== "folder") return [];
+    return buildExcludeOptions(files);
+  }, [files, effectiveMode]);
+
+  const filteredSuggestions = useMemo(
+    () =>
+      getExcludeOptionMatches(
+        excludeOptions,
+        inputValue,
+        customExcludeTargets,
+        activeNameExcludes,
+        20
+      ),
+    [activeNameExcludes, customExcludeTargets, excludeOptions, inputValue]
+  );
 
   // folder 模式
   useEffect(() => {
     if (files.length === 0 || effectiveMode !== "folder") {
-      setExcludeOptions([]);
       setFolderTreeLines([]);
       return;
     }
-
-    setExcludeOptions(buildExcludeOptions(files));
-
-    // 組合目前啟用的排除清單
-    const activeNameExcludes = Object.keys(excludedItems).filter(
-      (key) => excludedItems[key]
-    );
 
     const filteredFiles = filterFilesByExcludes(
       files,
@@ -98,7 +114,79 @@ function Home() {
     setRootFolderName(rootName);
     setMarkdown(md);
     setFolderTreeLines(lines);
-  }, [excludedItems, customExcludeTargets, files, effectiveMode]);
+  }, [activeNameExcludes, customExcludeTargets, files, effectiveMode]);
+
+  useEffect(() => {
+    if (!screenshotJob) return;
+    if (processedScreenshotJobIdsRef.current.has(screenshotJob.id)) return;
+
+    processedScreenshotJobIdsRef.current.add(screenshotJob.id);
+
+    const runDownload = async () => {
+      await new Promise((resolve) => {
+        requestAnimationFrame(() => requestAnimationFrame(resolve));
+      });
+
+      const node = screenshotWrapperRef.current;
+      if (!node) {
+        setScreenshotJob((current) =>
+          current?.id === screenshotJob.id ? null : current
+        );
+        return;
+      }
+
+      try {
+        const rect = node.getBoundingClientRect();
+        const width = Math.ceil(
+          rect.width || node.scrollWidth
+        );
+        const height = Math.ceil(
+          rect.height || node.scrollHeight
+        );
+
+        if (!width || !height) {
+          throw new Error("Screenshot node has no renderable size.");
+        }
+
+        const dataUrl = await toPng(node, {
+          cacheBust: true,
+          height,
+          pixelRatio: 3,
+          style: {
+            alignItems: "center",
+            backgroundColor: "#cee3f5",
+            boxSizing: "border-box",
+            display: "flex",
+            height: `${height}px`,
+            justifyContent: "center",
+            left: "0",
+            margin: "0",
+            overflow: "visible",
+            padding: "1em",
+            position: "static",
+            top: "0",
+            transform: "none",
+            width: `${width}px`,
+            zIndex: "0",
+          },
+          width,
+        });
+
+        const link = document.createElement("a");
+        link.download = screenshotJob.filename;
+        link.href = dataUrl;
+        link.click();
+      } catch (err) {
+        console.error("圖片轉換失敗", err);
+      } finally {
+        setScreenshotJob((current) =>
+          current?.id === screenshotJob.id ? null : current
+        );
+      }
+    };
+
+    runDownload();
+  }, [screenshotJob]);
 
   // 判斷單一檔案是 json / yaml / unknown
   const detectModeFromSingleFile = (file) => {
@@ -322,18 +410,6 @@ function Home() {
     }));
   };
 
-  // Suggestion 清單：最多 10 筆，依完整路徑排序並排除已加入的 tag
-  const activeNameExcludes = Object.keys(excludedItems).filter(
-    (key) => excludedItems[key]
-  );
-
-  const filteredSuggestions = getExcludeOptionMatches(
-    excludeOptions,
-    inputValue,
-    customExcludeTargets,
-    activeNameExcludes
-  ).slice(0, 20);
-
   const addCustomExcludeTarget = (target) => {
     if (!target) return;
 
@@ -435,29 +511,21 @@ function Home() {
       return;
     }
 
-    const node = document.getElementById("screenshot-wrapper");
-    if (!node) return;
+    const filename =
+      effectiveMode === "json" || effectiveMode === "yaml"
+        ? `${uploadFileName || "tree"}.png`
+        : `${rootFolderName}.png`;
+    const lines = markdown
+      .split("\n")
+      .filter(
+        (line, idx, arr) => !(idx === arr.length - 1 && line.trim() === "")
+      );
 
-    node.style.display = "flex";
-
-    toPng(node, { cacheBust: true, pixelRatio: 3 })
-      .then((dataUrl) => {
-        node.style.display = "none";
-
-        const link = document.createElement("a");
-        const filename =
-          effectiveMode === "json" || effectiveMode === "yaml"
-            ? `${uploadFileName || "tree"}.png`
-            : `${rootFolderName}.png`;
-
-        link.download = filename;
-        link.href = dataUrl;
-        link.click();
-      })
-      .catch((err) => {
-        node.style.display = "none";
-        console.error("圖片轉換失敗", err);
-      });
+    setScreenshotJob({
+      id: `${Date.now()}:${Math.random()}`,
+      filename,
+      lines,
+    });
   };
 
   // Clear：清除目前產出的樹狀圖 + 重置相關狀態
@@ -467,19 +535,13 @@ function Home() {
     setUploadFileName(null);
     setRootFolderName("directory_tree");
     setDetectedMode(null);
-    setExcludeOptions([]);
     setFolderTreeLines([]);
     setInputValue("");
     setHighlightIndex(-1);
+    setScreenshotJob(null);
     if (folderInputRef.current) folderInputRef.current.value = "";
     if (fileInputRef.current) fileInputRef.current.value = "";
   };
-
-  const lines = markdown
-    .split("\n")
-    .filter(
-      (line, idx, arr) => !(idx === arr.length - 1 && line.trim() === "")
-    );
 
   return (
     <div className="home">
@@ -576,8 +638,13 @@ function Home() {
         {[t("note1"), t("note2"), t("note3")].join("\n")}
       </ScrambledText>
 
-      {/* 圖片輸出用容器 */}
-      <ScreenshotWrapper lines={lines} />
+      {/* 圖片輸出用容器：需要下載圖片時才建立大量 DOM */}
+      {screenshotJob && (
+        <ScreenshotWrapper
+          lines={screenshotJob.lines}
+          wrapperRef={screenshotWrapperRef}
+        />
+      )}
     </div>
   );
 }

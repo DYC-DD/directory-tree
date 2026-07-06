@@ -56,6 +56,18 @@ export function renderTreeMarkdownLines(
   parentPath = ""
 ) {
   const lines = [];
+  appendTreeMarkdownLines(lines, tree, indent, isRoot, parentPath);
+
+  return lines;
+}
+
+function appendTreeMarkdownLines(
+  lines,
+  tree,
+  indent = "",
+  isRoot = true,
+  parentPath = ""
+) {
   const entries = Object.entries(tree).sort(([a], [b]) => {
     const isDirA = tree[a] !== null && typeof tree[a] === "object";
     const isDirB = tree[b] !== null && typeof tree[b] === "object";
@@ -85,28 +97,34 @@ export function renderTreeMarkdownLines(
 
     if (isFolder) {
       const deeperIndent = isRoot ? "" : indent + (isLast ? "    " : "│   ");
-      lines.push(...renderTreeMarkdownLines(value, deeperIndent, false, path));
+      appendTreeMarkdownLines(lines, value, deeperIndent, false, path);
     }
   });
-
-  return lines;
 }
 
 export function generateFolderTreeMarkdown(files, { folderPaths = [] } = {}) {
-  const sorted = [...files].sort((a, b) => {
-    const aParts = a.path.split("/");
-    const bParts = b.path.split("/");
-    return aParts.length === bParts.length
-      ? a.path.localeCompare(b.path)
-      : aParts.length - bParts.length;
-  });
-  const sortedFolderPaths = [...folderPaths].sort((a, b) => {
-    const aParts = a.split("/");
-    const bParts = b.split("/");
-    return aParts.length === bParts.length
-      ? a.localeCompare(b)
-      : aParts.length - bParts.length;
-  });
+  const sorted = files
+    .map((file) => ({
+      file,
+      depth: getPathDepth(file.path),
+    }))
+    .sort((a, b) =>
+      a.depth === b.depth
+        ? a.file.path.localeCompare(b.file.path)
+        : a.depth - b.depth
+    )
+    .map(({ file }) => file);
+  const sortedFolderPaths = folderPaths
+    .map((path) => ({
+      path,
+      depth: getPathDepth(path),
+    }))
+    .sort((a, b) =>
+      a.depth === b.depth
+        ? a.path.localeCompare(b.path)
+        : a.depth - b.depth
+    )
+    .map(({ path }) => path);
 
   const { tree, rootFolderName } = buildFileTree(sorted, sortedFolderPaths);
   const lines = renderTreeMarkdownLines(tree);
@@ -114,4 +132,10 @@ export function generateFolderTreeMarkdown(files, { folderPaths = [] } = {}) {
     lines.length > 0 ? `${lines.map((line) => line.text).join("\n")}\n` : "";
 
   return { markdown, rootFolderName, lines };
+}
+
+function getPathDepth(path) {
+  return String(path || "")
+    .split("/")
+    .filter(Boolean).length;
 }

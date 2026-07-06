@@ -5,9 +5,9 @@
  * - 僅在轉圖片 / 擷取畫面時使用
  */
 
-export default function ScreenshotWrapper({ lines }) {
+export default function ScreenshotWrapper({ lines, wrapperRef }) {
   return (
-    <div id="screenshot-wrapper" style={{ display: "none" }}>
+    <div id="screenshot-wrapper" ref={wrapperRef} aria-hidden="true">
       <div className="codeSnap-wrapper">
         <div className="codeSnap-header">
           <span className="dot red" />

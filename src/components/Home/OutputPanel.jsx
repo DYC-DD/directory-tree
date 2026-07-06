@@ -1,3 +1,5 @@
+import { useRef } from "react";
+
 /**
  * OutputPanel
  * - 顯示轉換後的 Markdown 目錄樹內容
@@ -21,6 +23,65 @@ export default function OutputPanel({
 }) {
   const hasInteractiveTree =
     treeLines.length > 0 && typeof onTreeItemClick === "function";
+  const hoverLineRef = useRef(null);
+
+  const getTreeLineFromEvent = (event) => {
+    const node = event.currentTarget;
+    const styles = window.getComputedStyle(node);
+    const lineHeight = Number.parseFloat(styles.lineHeight);
+    const paddingTop = Number.parseFloat(styles.paddingTop);
+
+    if (!Number.isFinite(lineHeight) || lineHeight <= 0) return null;
+
+    const y =
+      event.clientY - node.getBoundingClientRect().top + node.scrollTop;
+    const lineIndex = Math.floor((y - (paddingTop || 0)) / lineHeight);
+    const line = treeLines[lineIndex];
+
+    if (!line) return null;
+
+    return {
+      line,
+      lineHeight,
+      lineIndex,
+      paddingLeft: Number.parseFloat(styles.paddingLeft) || 0,
+      paddingTop: paddingTop || 0,
+    };
+  };
+
+  const handleTreeMouseMove = (event) => {
+    if (!hasInteractiveTree || !hoverLineRef.current) return;
+
+    const match = getTreeLineFromEvent(event);
+    if (!match) {
+      hoverLineRef.current.hidden = true;
+      return;
+    }
+
+    hoverLineRef.current.hidden = false;
+    hoverLineRef.current.textContent = match.line.text;
+    hoverLineRef.current.style.height = `${match.lineHeight}px`;
+    hoverLineRef.current.style.left = `${match.paddingLeft}px`;
+    hoverLineRef.current.style.lineHeight = `${match.lineHeight}px`;
+    hoverLineRef.current.style.top = `${
+      match.paddingTop + match.lineIndex * match.lineHeight
+    }px`;
+  };
+
+  const handleTreeMouseLeave = () => {
+    if (!hoverLineRef.current) return;
+    hoverLineRef.current.hidden = true;
+  };
+
+  const handleTreeClick = (event) => {
+    if (!hasInteractiveTree) return;
+    if (window.getSelection()?.toString()) return;
+
+    const match = getTreeLineFromEvent(event);
+    if (!match) return;
+
+    onTreeItemClick(match.line.target);
+  };
 
   return (
     <div className="output-container">
@@ -81,23 +142,19 @@ export default function OutputPanel({
       <pre
         className={`output ${hasInteractiveTree ? "output--tree" : ""}`}
         ref={textRef}
+        onClick={handleTreeClick}
+        onMouseLeave={handleTreeMouseLeave}
+        onMouseMove={handleTreeMouseMove}
       >
-        {hasInteractiveTree
-          ? treeLines.map((line, index) => (
-              <button
-                key={`${line.target.id}:${index}`}
-                type="button"
-                className="output-tree-line"
-                onClick={() => onTreeItemClick(line.target)}
-                title={t("hideTreeItem", { path: line.target.displayPath })}
-                aria-label={t("hideTreeItem", {
-                  path: line.target.displayPath,
-                })}
-              >
-                {line.text}
-              </button>
-            ))
-          : markdown}
+        {markdown}
+        {hasInteractiveTree && (
+          <span
+            ref={hoverLineRef}
+            className="output-tree-hover-line"
+            aria-hidden="true"
+            hidden
+          />
+        )}
       </pre>
     </div>
   );
