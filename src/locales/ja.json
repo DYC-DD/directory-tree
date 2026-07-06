@@ -7,6 +7,7 @@
   "inputPlaceholder": "ファイル、フォルダ、またはパスを入力",
   "noSuggestions": "一致する項目がありません",
   "dropZoneTextAuto": "📁 左クリックでフォルダを選択\n📄 右クリックで JSON / YAML ファイルを選択\nまたはフォルダやファイルをドラッグ＆ドロップ",
+  "hashtag": "Hashtag",
   "copy": "コピー",
   "download": "ダウンロード",
   "downloadImage": "画像",

@@ -1,4 +1,4 @@
-import { useRef } from "react";
+import { useMemo } from "react";
 
 /**
  * OutputPanel
@@ -15,6 +15,8 @@ export default function OutputPanel({
   treeLines = [],
   textRef,
   onTreeItemClick,
+  hashtagEnabled,
+  onToggleHashtags,
   onCopy,
   onDownloadMarkdown,
   onDownloadImage,
@@ -23,64 +25,30 @@ export default function OutputPanel({
 }) {
   const hasInteractiveTree =
     treeLines.length > 0 && typeof onTreeItemClick === "function";
-  const hoverLineRef = useRef(null);
+  const markdownLines = useMemo(() => markdown.split("\n"), [markdown]);
 
-  const getTreeLineFromEvent = (event) => {
-    const node = event.currentTarget;
-    const styles = window.getComputedStyle(node);
-    const lineHeight = Number.parseFloat(styles.lineHeight);
-    const paddingTop = Number.parseFloat(styles.paddingTop);
+  const getTreeLineIndexFromEvent = (event) => {
+    if (!(event.target instanceof Element)) return -1;
 
-    if (!Number.isFinite(lineHeight) || lineHeight <= 0) return null;
+    const lineElement = event.target.closest(".output-tree-line");
+    if (!lineElement || !event.currentTarget.contains(lineElement)) return -1;
 
-    const y =
-      event.clientY - node.getBoundingClientRect().top + node.scrollTop;
-    const lineIndex = Math.floor((y - (paddingTop || 0)) / lineHeight);
-    const line = treeLines[lineIndex];
-
-    if (!line) return null;
-
-    return {
-      line,
-      lineHeight,
-      lineIndex,
-      paddingLeft: Number.parseFloat(styles.paddingLeft) || 0,
-      paddingTop: paddingTop || 0,
-    };
-  };
-
-  const handleTreeMouseMove = (event) => {
-    if (!hasInteractiveTree || !hoverLineRef.current) return;
-
-    const match = getTreeLineFromEvent(event);
-    if (!match) {
-      hoverLineRef.current.hidden = true;
-      return;
-    }
-
-    hoverLineRef.current.hidden = false;
-    hoverLineRef.current.textContent = match.line.text;
-    hoverLineRef.current.style.height = `${match.lineHeight}px`;
-    hoverLineRef.current.style.left = `${match.paddingLeft}px`;
-    hoverLineRef.current.style.lineHeight = `${match.lineHeight}px`;
-    hoverLineRef.current.style.top = `${
-      match.paddingTop + match.lineIndex * match.lineHeight
-    }px`;
-  };
-
-  const handleTreeMouseLeave = () => {
-    if (!hoverLineRef.current) return;
-    hoverLineRef.current.hidden = true;
+    const lineIndex = Number.parseInt(
+      lineElement.dataset.treeLineIndex,
+      10
+    );
+    return Number.isInteger(lineIndex) ? lineIndex : -1;
   };
 
   const handleTreeClick = (event) => {
     if (!hasInteractiveTree) return;
     if (window.getSelection()?.toString()) return;
 
-    const match = getTreeLineFromEvent(event);
-    if (!match) return;
+    const lineIndex = getTreeLineIndexFromEvent(event);
+    const line = treeLines[lineIndex];
+    if (!line) return;
 
-    onTreeItemClick(match.line.target);
+    onTreeItemClick(line.target);
   };
 
   return (
@@ -88,6 +56,19 @@ export default function OutputPanel({
       <div className="output-header">
         <span>Markdown</span>
         <div className="button-group">
+          {/* Hashtag */}
+          <button
+            className={hashtagEnabled ? "active" : ""}
+            onClick={onToggleHashtags}
+            disabled={!markdown?.trim()}
+            title={t("hashtag")}
+            aria-label={t("hashtag")}
+            aria-pressed={hashtagEnabled}
+          >
+            <img src={`./images/hashtag-solid.png`} alt="" className="icon" />
+            <span className="button-label">{t("hashtag")}</span>
+          </button>
+
           {/* Copy */}
           <button onClick={onCopy} title={t("copy")} aria-label={t("copy")}>
             <img src={`./images/copy-solid.png`} alt="" className="icon" />
@@ -143,18 +124,20 @@ export default function OutputPanel({
         className={`output ${hasInteractiveTree ? "output--tree" : ""}`}
         ref={textRef}
         onClick={handleTreeClick}
-        onMouseLeave={handleTreeMouseLeave}
-        onMouseMove={handleTreeMouseMove}
       >
-        {markdown}
-        {hasInteractiveTree && (
-          <span
-            ref={hoverLineRef}
-            className="output-tree-hover-line"
-            aria-hidden="true"
-            hidden
-          />
-        )}
+        {hasInteractiveTree
+          ? markdownLines.map((line, index) => (
+              <span
+                key={index}
+                className="output-tree-line"
+                data-tree-line-index={index}
+              >
+                <span className="output-tree-line-text">
+                  {line || "\u00A0"}
+                </span>
+              </span>
+            ))
+          : markdown}
       </pre>
     </div>
   );

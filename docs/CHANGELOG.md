@@ -10,6 +10,7 @@ This changelog follows the [Keep a Changelog](https://keepachangelog.com/zh-TW/1
 - 點擊資料夾時會隱藏該資料夾與底下所有子項目；點擊檔案時只會隱藏該檔案，讓排除操作更快速直覺
 - 新增隱藏項目清單收折功能，當隱藏標籤超過 6 個時會先收折並顯示剩餘數量，避免清單過長影響頁面瀏覽
 - 新增首頁標題 Morphing Text 動畫效果，讓 `Folder`、`JSON`、`YAML` 在標題中輪換顯示
+- 新增 Hashtag 按鈕，可在 Markdown 目錄樹行尾依最長行對齊補上 `#`，並支援依序切換「所有節點」與「僅檔案／最底層空目錄」兩種標記模式
 
 ### Changed
 
@@ -20,6 +21,7 @@ This changelog follows the [Keep a Changelog](https://keepachangelog.com/zh-TW/1
 - 改善排除選項建立、搜尋推薦、檔案篩選與目錄樹 Markdown 產生流程，減少大量路徑資料下的重複計算與排序成本
 - 下載圖片用的截圖 DOM 改為按下下載圖片時才建立，避免大型目錄樹在平常瀏覽時同步渲染隱藏截圖內容
 - 將首頁主標題調整為 `Folder / JSON / YAML to Directory tree` 的簡潔文案，並放大標題尺寸、統一 morphing 文字與標題文字的字重與顏色
+- Hashtag 標記結果會同步套用於顯示、複製、Markdown 下載與圖片下載，按鈕啟用時僅維持圖示與文字亮色，不顯示膠囊背景
 
 ### Removed
 
@@ -28,7 +30,8 @@ This changelog follows the [Keep a Changelog](https://keepachangelog.com/zh-TW/1
 ### Fixed
 
 - 修正隱藏資料夾中唯一檔案時，父資料夾會因為沒有剩餘子檔而一併從目錄樹消失的問題；現在未被明確隱藏的空資料夾會保留在輸出中
-- 修正大量檔案效能優化後，目錄樹項目 hover 時缺少移除提示效果的問題；現在以單行 highlight overlay 保留原本的互動回饋
+- 修正大量檔案效能優化後，目錄樹項目 hover 時缺少移除提示效果的問題；現在以每行獨立 hover 背景保留原本的互動回饋
+- 修正長列表下半部 hover 高亮因行高累積誤差導致位置沒有和文字置中的問題
 - 修正下載圖片時可能產生空白或內容偏移的問題，截圖輸出會使用實際節點尺寸並保持內容置中
 
 ## [2.0.1] - 2026-05-30

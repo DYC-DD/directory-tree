@@ -21,6 +21,10 @@ import {
   getVisibleFolderPaths,
 } from "../utils/excludeUtils";
 import { getJsonBaseName, getYamlBaseName } from "../utils/fileNameUtils";
+import {
+  addHashtagsToTreeMarkdown,
+  HASHTAG_MODES,
+} from "../utils/hashtagUtils";
 import { renderObjectTreeMarkdown } from "../utils/objectTreeMarkdownUtils";
 import { generateFolderTreeMarkdown } from "../utils/treeMarkdownUtils";
 
@@ -36,6 +40,7 @@ function Home() {
   const [markdown, setMarkdown] = useState("");
   const [files, setFiles] = useState([]);
   const [folderTreeLines, setFolderTreeLines] = useState([]);
+  const [hashtagMode, setHashtagMode] = useState(HASHTAG_MODES.OFF);
 
   // 預設排除項目
   const [excludedItems, setExcludedItems] = useState({
@@ -82,6 +87,14 @@ function Home() {
         20
       ),
     [activeNameExcludes, customExcludeTargets, excludeOptions, inputValue]
+  );
+
+  const outputMarkdown = useMemo(
+    () =>
+      hashtagMode === HASHTAG_MODES.OFF
+        ? markdown
+        : addHashtagsToTreeMarkdown(markdown, { mode: hashtagMode }),
+    [hashtagMode, markdown]
   );
 
   // folder 模式
@@ -464,6 +477,14 @@ function Home() {
     addCustomExcludeTarget(target);
   };
 
+  const handleToggleHashtags = () => {
+    setHashtagMode((current) => {
+      if (current === HASHTAG_MODES.OFF) return HASHTAG_MODES.ALL;
+      if (current === HASHTAG_MODES.ALL) return HASHTAG_MODES.FILES;
+      return HASHTAG_MODES.OFF;
+    });
+  };
+
   // tag 移除
   const handleRemoveExcludeTag = (targetId) => {
     setCustomExcludeTargets((prev) =>
@@ -475,7 +496,7 @@ function Home() {
   // 複製到剪貼簿
   const copyToClipboard = () => {
     if (textRef.current) {
-      navigator.clipboard.writeText(markdown);
+      navigator.clipboard.writeText(outputMarkdown);
     }
   };
 
@@ -490,7 +511,7 @@ function Home() {
       effectiveMode === "json" || effectiveMode === "yaml"
         ? `${uploadFileName || "tree"}.md`
         : `${rootFolderName}.md`;
-    const downloadContent = `\`\`\`bash\n${markdown.trimEnd()}\n\`\`\`\n`;
+    const downloadContent = `\`\`\`bash\n${outputMarkdown.trimEnd()}\n\`\`\`\n`;
     const blob = new Blob([downloadContent], {
       type: "text/markdown;charset=utf-8",
     });
@@ -515,7 +536,7 @@ function Home() {
       effectiveMode === "json" || effectiveMode === "yaml"
         ? `${uploadFileName || "tree"}.png`
         : `${rootFolderName}.png`;
-    const lines = markdown
+    const lines = outputMarkdown
       .split("\n")
       .filter(
         (line, idx, arr) => !(idx === arr.length - 1 && line.trim() === "")
@@ -539,6 +560,7 @@ function Home() {
     setInputValue("");
     setHighlightIndex(-1);
     setScreenshotJob(null);
+    setHashtagMode(HASHTAG_MODES.OFF);
     if (folderInputRef.current) folderInputRef.current.value = "";
     if (fileInputRef.current) fileInputRef.current.value = "";
   };
@@ -607,10 +629,12 @@ function Home() {
 
       {/* 輸出面板 */}
       <OutputPanel
-        markdown={markdown}
+        markdown={outputMarkdown}
         treeLines={effectiveMode === "folder" ? folderTreeLines : []}
         textRef={textRef}
         onTreeItemClick={handleTreeItemClick}
+        hashtagEnabled={hashtagMode !== HASHTAG_MODES.OFF}
+        onToggleHashtags={handleToggleHashtags}
         onCopy={copyToClipboard}
         onDownloadMarkdown={downloadMarkdown}
         onDownloadImage={downloadImage}

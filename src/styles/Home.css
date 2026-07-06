@@ -296,7 +296,15 @@
   color: #fff;
 }
 
+.output-header button.active {
+  color: #fff;
+}
+
 .output-header button:hover .icon {
+  filter: brightness(0) invert(100%);
+}
+
+.output-header button.active .icon {
   filter: brightness(0) invert(100%);
 }
 
@@ -323,27 +331,24 @@
   cursor: pointer;
 }
 
-.output-tree-hover-line {
-  box-sizing: border-box;
-  position: absolute;
-  z-index: 1;
+.output-tree-line {
   display: block;
-  width: fit-content;
-  max-width: max-content;
+  line-height: inherit;
+}
+
+.output-tree-line-text {
+  box-sizing: border-box;
+  display: inline-block;
   padding-inline: 0.25em;
   margin-inline: -0.25em;
   border-radius: 4px;
-  background: rgba(55, 138, 240, 0.18);
-  color: #8fc4ff;
-  font: inherit;
-  letter-spacing: inherit;
-  pointer-events: none;
-  user-select: none;
+  line-height: inherit;
   white-space: pre;
 }
 
-.output-tree-hover-line[hidden] {
-  display: none;
+.output-tree-line:hover .output-tree-line-text {
+  background: rgba(55, 138, 240, 0.18);
+  color: #8fc4ff;
 }
 
 /* ===== ScreenshotWrapper（下載圖片用） ===== */

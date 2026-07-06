@@ -7,6 +7,7 @@
   "inputPlaceholder": "Enter file, folder, or path",
   "noSuggestions": "No matching items",
   "dropZoneTextAuto": "📁 Left-click to select a folder\n📄 Right-click to select a JSON / YAML file\nor drag and drop folders or files",
+  "hashtag": "Hashtag",
   "copy": "Copy",
   "download": "Download",
   "downloadImage": "Image",
