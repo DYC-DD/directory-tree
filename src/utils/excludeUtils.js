@@ -31,33 +31,36 @@ export function buildExcludeOptions(files) {
 
   files.forEach((file) => {
     const parts = splitPath(file.path);
+    let parentPath = "";
 
     parts.forEach((part, index) => {
       const type = index === parts.length - 1 ? "file" : "folder";
-      const path = parts.slice(0, index + 1).join("/");
-      const parentPath = parts.slice(0, index).join("/");
+      const path = parentPath ? `${parentPath}/${part}` : part;
       const id = `${type}:${path}`;
 
-      if (optionMap.has(id)) return;
+      if (!optionMap.has(id)) {
+        const displayPath = type === "folder" ? `${path}/` : path;
 
-      const displayPath = type === "folder" ? `${path}/` : path;
+        optionMap.set(id, {
+          id,
+          type,
+          path,
+          name: part,
+          parentPath,
+          displayPath,
+          depth: index + 1,
+          normalizedName: part.toLowerCase(),
+          normalizedPath: path.toLowerCase(),
+          normalizedDisplayPath: displayPath.toLowerCase(),
+        });
+      }
 
-      optionMap.set(id, {
-        id,
-        type,
-        path,
-        name: part,
-        parentPath,
-        displayPath,
-        normalizedName: part.toLowerCase(),
-        normalizedPath: path.toLowerCase(),
-        normalizedDisplayPath: displayPath.toLowerCase(),
-      });
+      parentPath = path;
     });
   });
 
   return Array.from(optionMap.values()).sort((a, b) => {
-    const depthDiff = getPathDepth(a.path) - getPathDepth(b.path);
+    const depthDiff = a.depth - b.depth;
     if (depthDiff !== 0) return depthDiff;
 
     if (a.type !== b.type) return a.type === "folder" ? -1 : 1;
@@ -66,32 +69,99 @@ export function buildExcludeOptions(files) {
   });
 }
 
-export function getExcludeOptionMatches(options, inputValue, selectedTargets) {
+export function getExcludeOptionMatches(
+  options,
+  inputValue,
+  selectedTargets,
+  nameExcludes = [],
+  limit = Infinity
+) {
   const query = normalizePathValue(inputValue).toLowerCase();
   if (!query) return [];
 
-  const selectedIds = new Set(selectedTargets.map((target) => target.id));
+  const nameExcludeSet = new Set(nameExcludes);
+  const normalizedTargets = normalizeExcludeTargets(selectedTargets);
+  const limitedMatches = Number.isFinite(limit) && limit > 0;
+  const matches = [];
 
-  return options
-    .filter((option) => !selectedIds.has(createExcludeTarget(option).id))
-    .filter((option) => {
-      return (
-        option.normalizedName.includes(query) ||
-        option.normalizedPath.includes(query) ||
-        option.normalizedDisplayPath.includes(query)
-      );
-    })
-    .sort((a, b) => {
-      const scoreA = getExcludeOptionScore(a, query);
-      const scoreB = getExcludeOptionScore(b, query);
+  options.forEach((option) => {
+    if (optionIsHidden(option, normalizedTargets, nameExcludeSet)) return;
 
-      if (scoreA !== scoreB) return scoreA - scoreB;
+    const isMatch =
+      option.normalizedName.includes(query) ||
+      option.normalizedPath.includes(query) ||
+      option.normalizedDisplayPath.includes(query);
 
-      const depthDiff = getPathDepth(a.path) - getPathDepth(b.path);
-      if (depthDiff !== 0) return depthDiff;
+    if (!isMatch) return;
 
-      return a.path.localeCompare(b.path);
-    });
+    const match = {
+      option,
+      score: getExcludeOptionScore(option, query),
+      depth: option.depth ?? getPathDepth(option.path),
+    };
+
+    if (!limitedMatches) {
+      matches.push(match);
+      return;
+    }
+
+    insertLimitedMatch(matches, match, limit);
+  });
+
+  if (!limitedMatches) matches.sort(compareOptionMatches);
+
+  return matches.map((match) => match.option);
+}
+
+function optionIsHidden(option, selectedTargets, nameExcludeSet) {
+  const parts = splitPath(option.path);
+  if (parts.some((part) => nameExcludeSet.has(part))) return true;
+
+  return selectedTargets.some((target) => optionMatchesTarget(option, target));
+}
+
+function optionMatchesTarget(option, target) {
+  const targetPath = target.path;
+  const optionPath = normalizePathValue(option.path);
+  if (!targetPath || !optionPath) return false;
+
+  if (target.type === "file") {
+    return option.type === "file" && optionPath === targetPath;
+  }
+
+  return optionPath === targetPath || optionPath.startsWith(`${targetPath}/`);
+}
+
+function normalizeExcludeTargets(targets = []) {
+  return targets
+    .map((target) => ({
+      ...target,
+      path: normalizePathValue(target.path),
+    }))
+    .filter((target) => target.path);
+}
+
+function insertLimitedMatch(matches, match, limit) {
+  const insertIndex = matches.findIndex(
+    (current) => compareOptionMatches(match, current) < 0
+  );
+
+  if (insertIndex === -1) {
+    if (matches.length < limit) matches.push(match);
+    return;
+  }
+
+  matches.splice(insertIndex, 0, match);
+  if (matches.length > limit) matches.pop();
+}
+
+function compareOptionMatches(a, b) {
+  if (a.score !== b.score) return a.score - b.score;
+
+  const depthDiff = a.depth - b.depth;
+  if (depthDiff !== 0) return depthDiff;
+
+  return a.option.path.localeCompare(b.option.path);
 }
 
 function getExcludeOptionScore(option, query) {
@@ -111,22 +181,56 @@ export function createExcludeTargetFromOption(option) {
 
 export function filterFilesByExcludes(files, nameExcludes, customTargets) {
   const nameExcludeSet = new Set(nameExcludes);
+  const normalizedTargets = normalizeExcludeTargets(customTargets);
 
   return files.filter((file) => {
     const path = normalizePathValue(file.path);
-    const parts = splitPath(path);
+    const parts = path ? path.split("/") : [];
 
     if (parts.some((part) => nameExcludeSet.has(part))) return false;
 
-    return !customTargets.some((target) => fileMatchesTarget(path, target));
+    return !normalizedTargets.some((target) => fileMatchesTarget(path, target));
   });
 }
 
+export function getVisibleFolderPaths(files, nameExcludes, customTargets) {
+  const nameExcludeSet = new Set(nameExcludes);
+  const normalizedTargets = normalizeExcludeTargets(customTargets);
+  const folderPathSet = new Set();
+
+  files.forEach((file) => {
+    const parts = splitPath(file.path);
+    let folderPath = "";
+
+    for (let index = 0; index < parts.length - 1; index += 1) {
+      const part = parts[index];
+      folderPath = folderPath ? `${folderPath}/${part}` : part;
+
+      if (nameExcludeSet.has(part)) break;
+
+      const isHiddenFolder = normalizedTargets.some((target) =>
+        folderMatchesTarget(folderPath, target)
+      );
+
+      if (!isHiddenFolder) folderPathSet.add(folderPath);
+    }
+  });
+
+  return Array.from(folderPathSet);
+}
+
 function fileMatchesTarget(path, target) {
-  const targetPath = normalizePathValue(target.path);
+  const targetPath = target.path;
   if (!targetPath) return false;
 
   if (target.type === "file") return path === targetPath;
+
+  return path === targetPath || path.startsWith(`${targetPath}/`);
+}
+
+function folderMatchesTarget(path, target) {
+  const targetPath = target.path;
+  if (!targetPath || target.type !== "folder") return false;
 
   return path === targetPath || path.startsWith(`${targetPath}/`);
 }

@@ -1,6 +1,6 @@
 import { toPng } from "html-to-image";
 import YAML from "js-yaml";
-import React, { useEffect, useRef, useState } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 
 import "../styles/Home.css";
@@ -9,19 +9,24 @@ import ExcludeControls from "../components/Home/ExcludeControls";
 import HiddenFileInput from "../components/Home/HiddenFileInput";
 import OutputPanel from "../components/Home/OutputPanel";
 import ScreenshotWrapper from "../components/Home/ScreenshotWrapper";
+import MorphingText from "../components/MorphingText/MorphingText";
 import PixelCard from "../components/PixelCard/PixelCard";
-import RotatingText from "../components/RotatingText/RotatingText";
 import ScrambledText from "../components/ScrambledText/ScrambledText";
 
-import { getJsonBaseName, getYamlBaseName } from "../utils/fileNameUtils";
-import { renderObjectTreeMarkdown } from "../utils/objectTreeMarkdownUtils";
-import { generateFolderTreeMarkdown } from "../utils/treeMarkdownUtils";
 import {
   buildExcludeOptions,
   createExcludeTargetFromOption,
   filterFilesByExcludes,
   getExcludeOptionMatches,
+  getVisibleFolderPaths,
 } from "../utils/excludeUtils";
+import { getJsonBaseName, getYamlBaseName } from "../utils/fileNameUtils";
+import {
+  addHashtagsToTreeMarkdown,
+  HASHTAG_MODES,
+} from "../utils/hashtagUtils";
+import { renderObjectTreeMarkdown } from "../utils/objectTreeMarkdownUtils";
+import { generateFolderTreeMarkdown } from "../utils/treeMarkdownUtils";
 
 function Home() {
   // i18n
@@ -34,6 +39,8 @@ function Home() {
   // 主要輸出與資料來源
   const [markdown, setMarkdown] = useState("");
   const [files, setFiles] = useState([]);
+  const [folderTreeLines, setFolderTreeLines] = useState([]);
+  const [hashtagMode, setHashtagMode] = useState(HASHTAG_MODES.OFF);
 
   // 預設排除項目
   const [excludedItems, setExcludedItems] = useState({
@@ -46,8 +53,8 @@ function Home() {
 
   // 自訂排除輸入輔助
   const [inputValue, setInputValue] = useState("");
-  const [excludeOptions, setExcludeOptions] = useState([]);
   const [highlightIndex, setHighlightIndex] = useState(-1);
+  const [screenshotJob, setScreenshotJob] = useState(null);
 
   // 檔名/根節點顯示用
   const [rootFolderName, setRootFolderName] = useState("directory_tree");
@@ -57,34 +64,142 @@ function Home() {
   const textRef = useRef(null);
   const folderInputRef = useRef(null);
   const fileInputRef = useRef(null);
+  const screenshotWrapperRef = useRef(null);
+  const processedScreenshotJobIdsRef = useRef(new Set());
+
+  const activeNameExcludes = useMemo(
+    () => Object.keys(excludedItems).filter((key) => excludedItems[key]),
+    [excludedItems]
+  );
+
+  const excludeOptions = useMemo(() => {
+    if (files.length === 0 || effectiveMode !== "folder") return [];
+    return buildExcludeOptions(files);
+  }, [files, effectiveMode]);
+
+  const filteredSuggestions = useMemo(
+    () =>
+      getExcludeOptionMatches(
+        excludeOptions,
+        inputValue,
+        customExcludeTargets,
+        activeNameExcludes,
+        20
+      ),
+    [activeNameExcludes, customExcludeTargets, excludeOptions, inputValue]
+  );
+
+  const outputMarkdown = useMemo(
+    () =>
+      hashtagMode === HASHTAG_MODES.OFF
+        ? markdown
+        : addHashtagsToTreeMarkdown(markdown, { mode: hashtagMode }),
+    [hashtagMode, markdown]
+  );
 
   // folder 模式
   useEffect(() => {
     if (files.length === 0 || effectiveMode !== "folder") {
-      setExcludeOptions([]);
+      setFolderTreeLines([]);
       return;
     }
-
-    setExcludeOptions(buildExcludeOptions(files));
-
-    // 組合目前啟用的排除清單
-    const activeNameExcludes = Object.keys(excludedItems).filter(
-      (key) => excludedItems[key]
-    );
 
     const filteredFiles = filterFilesByExcludes(
       files,
       activeNameExcludes,
       customExcludeTargets
     );
+    const visibleFolderPaths = getVisibleFolderPaths(
+      files,
+      activeNameExcludes,
+      customExcludeTargets
+    );
 
     // 生成 markdown
-    const { markdown: md, rootFolderName: rootName } =
-      generateFolderTreeMarkdown(filteredFiles);
+    const {
+      markdown: md,
+      rootFolderName: rootName,
+      lines,
+    } = generateFolderTreeMarkdown(filteredFiles, {
+      folderPaths: visibleFolderPaths,
+    });
 
     setRootFolderName(rootName);
     setMarkdown(md);
-  }, [excludedItems, customExcludeTargets, files, effectiveMode]);
+    setFolderTreeLines(lines);
+  }, [activeNameExcludes, customExcludeTargets, files, effectiveMode]);
+
+  useEffect(() => {
+    if (!screenshotJob) return;
+    if (processedScreenshotJobIdsRef.current.has(screenshotJob.id)) return;
+
+    processedScreenshotJobIdsRef.current.add(screenshotJob.id);
+
+    const runDownload = async () => {
+      await new Promise((resolve) => {
+        requestAnimationFrame(() => requestAnimationFrame(resolve));
+      });
+
+      const node = screenshotWrapperRef.current;
+      if (!node) {
+        setScreenshotJob((current) =>
+          current?.id === screenshotJob.id ? null : current
+        );
+        return;
+      }
+
+      try {
+        const rect = node.getBoundingClientRect();
+        const width = Math.ceil(
+          rect.width || node.scrollWidth
+        );
+        const height = Math.ceil(
+          rect.height || node.scrollHeight
+        );
+
+        if (!width || !height) {
+          throw new Error("Screenshot node has no renderable size.");
+        }
+
+        const dataUrl = await toPng(node, {
+          cacheBust: true,
+          height,
+          pixelRatio: 3,
+          style: {
+            alignItems: "center",
+            backgroundColor: "#cee3f5",
+            boxSizing: "border-box",
+            display: "flex",
+            height: `${height}px`,
+            justifyContent: "center",
+            left: "0",
+            margin: "0",
+            overflow: "visible",
+            padding: "1em",
+            position: "static",
+            top: "0",
+            transform: "none",
+            width: `${width}px`,
+            zIndex: "0",
+          },
+          width,
+        });
+
+        const link = document.createElement("a");
+        link.download = screenshotJob.filename;
+        link.href = dataUrl;
+        link.click();
+      } catch (err) {
+        console.error("圖片轉換失敗", err);
+      } finally {
+        setScreenshotJob((current) =>
+          current?.id === screenshotJob.id ? null : current
+        );
+      }
+    };
+
+    runDownload();
+  }, [screenshotJob]);
 
   // 判斷單一檔案是 json / yaml / unknown
   const detectModeFromSingleFile = (file) => {
@@ -170,9 +285,11 @@ function Home() {
 
         setUploadFileName(rootName);
         setMarkdown(md);
+        setFolderTreeLines([]);
       } catch (err) {
         console.error("Object tree 解析失敗：", err);
         setMarkdown("");
+        setFolderTreeLines([]);
       }
     };
 
@@ -306,13 +423,6 @@ function Home() {
     }));
   };
 
-  // Suggestion 清單：最多 10 筆，依完整路徑排序並排除已加入的 tag
-  const filteredSuggestions = getExcludeOptionMatches(
-    excludeOptions,
-    inputValue,
-    customExcludeTargets
-  ).slice(0, 10);
-
   const addCustomExcludeTarget = (target) => {
     if (!target) return;
 
@@ -361,6 +471,20 @@ function Home() {
     addCustomExcludeTarget(createExcludeTargetFromOption(option));
   };
 
+  // 直接點擊輸出中的 folder tree 項目來加入排除
+  const handleTreeItemClick = (target) => {
+    if (effectiveMode !== "folder") return;
+    addCustomExcludeTarget(target);
+  };
+
+  const handleToggleHashtags = () => {
+    setHashtagMode((current) => {
+      if (current === HASHTAG_MODES.OFF) return HASHTAG_MODES.ALL;
+      if (current === HASHTAG_MODES.ALL) return HASHTAG_MODES.FILES;
+      return HASHTAG_MODES.OFF;
+    });
+  };
+
   // tag 移除
   const handleRemoveExcludeTag = (targetId) => {
     setCustomExcludeTargets((prev) =>
@@ -372,7 +496,7 @@ function Home() {
   // 複製到剪貼簿
   const copyToClipboard = () => {
     if (textRef.current) {
-      navigator.clipboard.writeText(markdown);
+      navigator.clipboard.writeText(outputMarkdown);
     }
   };
 
@@ -387,7 +511,7 @@ function Home() {
       effectiveMode === "json" || effectiveMode === "yaml"
         ? `${uploadFileName || "tree"}.md`
         : `${rootFolderName}.md`;
-    const downloadContent = `\`\`\`bash\n${markdown.trimEnd()}\n\`\`\`\n`;
+    const downloadContent = `\`\`\`bash\n${outputMarkdown.trimEnd()}\n\`\`\`\n`;
     const blob = new Blob([downloadContent], {
       type: "text/markdown;charset=utf-8",
     });
@@ -408,29 +532,21 @@ function Home() {
       return;
     }
 
-    const node = document.getElementById("screenshot-wrapper");
-    if (!node) return;
+    const filename =
+      effectiveMode === "json" || effectiveMode === "yaml"
+        ? `${uploadFileName || "tree"}.png`
+        : `${rootFolderName}.png`;
+    const lines = outputMarkdown
+      .split("\n")
+      .filter(
+        (line, idx, arr) => !(idx === arr.length - 1 && line.trim() === "")
+      );
 
-    node.style.display = "flex";
-
-    toPng(node, { cacheBust: true, pixelRatio: 3 })
-      .then((dataUrl) => {
-        node.style.display = "none";
-
-        const link = document.createElement("a");
-        const filename =
-          effectiveMode === "json" || effectiveMode === "yaml"
-            ? `${uploadFileName || "tree"}.png`
-            : `${rootFolderName}.png`;
-
-        link.download = filename;
-        link.href = dataUrl;
-        link.click();
-      })
-      .catch((err) => {
-        node.style.display = "none";
-        console.error("圖片轉換失敗", err);
-      });
+    setScreenshotJob({
+      id: `${Date.now()}:${Math.random()}`,
+      filename,
+      lines,
+    });
   };
 
   // Clear：清除目前產出的樹狀圖 + 重置相關狀態
@@ -440,37 +556,24 @@ function Home() {
     setUploadFileName(null);
     setRootFolderName("directory_tree");
     setDetectedMode(null);
-    setExcludeOptions([]);
+    setFolderTreeLines([]);
     setInputValue("");
     setHighlightIndex(-1);
+    setScreenshotJob(null);
+    setHashtagMode(HASHTAG_MODES.OFF);
     if (folderInputRef.current) folderInputRef.current.value = "";
     if (fileInputRef.current) fileInputRef.current.value = "";
   };
-
-  const lines = markdown
-    .split("\n")
-    .filter(
-      (line, idx, arr) => !(idx === arr.length - 1 && line.trim() === "")
-    );
 
   return (
     <div className="home">
       {/* 主標題 */}
       <h1 className="home-title">
-        <span className="home-title-copy">{t("home.title.prefix")}</span>
-        <RotatingText
+        <MorphingText
+          className="home-title-morph"
           texts={["Folder", "JSON", "YAML"]}
-          mainClassName="rotating-chip"
-          staggerFrom="last"
-          initial={{ y: "100%" }}
-          animate={{ y: 0 }}
-          exit={{ y: "-120%" }}
-          staggerDuration={0.025}
-          splitLevelClassName="rotating-chip-split"
-          transition={{ type: "spring", damping: 30, stiffness: 400 }}
-          rotationInterval={2000}
         />
-        <span className="home-title-copy">{t("home.title.suffix")}</span>
+        <span className="home-title-copy">to Directory tree</span>
       </h1>
 
       {/* folder 模式才顯示：排除控制 */}
@@ -526,8 +629,12 @@ function Home() {
 
       {/* 輸出面板 */}
       <OutputPanel
-        markdown={markdown}
+        markdown={outputMarkdown}
+        treeLines={effectiveMode === "folder" ? folderTreeLines : []}
         textRef={textRef}
+        onTreeItemClick={handleTreeItemClick}
+        hashtagEnabled={hashtagMode !== HASHTAG_MODES.OFF}
+        onToggleHashtags={handleToggleHashtags}
         onCopy={copyToClipboard}
         onDownloadMarkdown={downloadMarkdown}
         onDownloadImage={downloadImage}
@@ -546,8 +653,13 @@ function Home() {
         {[t("note1"), t("note2"), t("note3")].join("\n")}
       </ScrambledText>
 
-      {/* 圖片輸出用容器 */}
-      <ScreenshotWrapper lines={lines} />
+      {/* 圖片輸出用容器：需要下載圖片時才建立大量 DOM */}
+      {screenshotJob && (
+        <ScreenshotWrapper
+          lines={screenshotJob.lines}
+          wrapperRef={screenshotWrapperRef}
+        />
+      )}
     </div>
   );
 }
