@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 
 import { getExcludeTargetLabel } from "../../utils/excludeUtils";
 
@@ -9,6 +9,8 @@ import { getExcludeTargetLabel } from "../../utils/excludeUtils";
  *   2. 自訂輸入排除（input + suggestion）
  *   3. 自訂排除標籤顯示與移除
  */
+
+const COLLAPSED_EXCLUDE_LIMIT = 6;
 
 export default function ExcludeControls({
   uploadMode,
@@ -24,6 +26,43 @@ export default function ExcludeControls({
   onRemoveExcludeTag,
   t,
 }) {
+  const [isExcludeListExpanded, setIsExcludeListExpanded] = useState(false);
+
+  const excludeChips = [
+    ...Object.keys(excludedItems).map((item) => ({
+      id: `default:${item}`,
+      kind: "default",
+      label: item,
+      isActive: excludedItems[item],
+      onClick: () => onToggleExcludedItem(item),
+    })),
+    ...customExcludeTargets.map((target) => {
+      const label = getExcludeTargetLabel(target);
+
+      return {
+        id: target.id,
+        kind: "custom",
+        label,
+        title: label,
+        isActive: true,
+        onClick: () => onRemoveExcludeTag(target.id),
+      };
+    }),
+  ];
+  const shouldCollapseExcludeList =
+    excludeChips.length > COLLAPSED_EXCLUDE_LIMIT;
+  const hiddenExcludeCount = excludeChips.length - COLLAPSED_EXCLUDE_LIMIT;
+  const visibleExcludeChips =
+    shouldCollapseExcludeList && !isExcludeListExpanded
+      ? excludeChips.slice(0, COLLAPSED_EXCLUDE_LIMIT)
+      : excludeChips;
+
+  useEffect(() => {
+    if (!shouldCollapseExcludeList && isExcludeListExpanded) {
+      setIsExcludeListExpanded(false);
+    }
+  }, [isExcludeListExpanded, shouldCollapseExcludeList]);
+
   // 非 folder 模式時不顯示任何內容
   if (uploadMode !== "folder") return null;
 
@@ -72,30 +111,36 @@ export default function ExcludeControls({
 
       {/* 排除項目標籤列 */}
       <div className="default-excludes">
-        {Object.keys(excludedItems).map((item) => (
+        {visibleExcludeChips.map((chip) => (
           <button
-            key={item}
+            key={chip.id}
             type="button"
-            onClick={() => onToggleExcludedItem(item)}
-            className={`exclude-button default-exclude-button ${
-              excludedItems[item] ? "active" : ""
-            }`}
+            onClick={chip.onClick}
+            className={`exclude-button ${
+              chip.kind === "default"
+                ? "default-exclude-button"
+                : "custom-exclude-button"
+            } ${chip.isActive ? "active" : ""}`}
+            title={chip.title}
           >
-            {item}
+            {chip.label}
           </button>
         ))}
 
-        {customExcludeTargets.map((target) => (
+        {shouldCollapseExcludeList && (
           <button
-            key={target.id}
             type="button"
-            onClick={() => onRemoveExcludeTag(target.id)}
-            className="exclude-button custom-exclude-button active"
-            title={getExcludeTargetLabel(target)}
+            className={`exclude-button exclude-list-toggle ${
+              isExcludeListExpanded ? "active" : ""
+            }`}
+            onClick={() => setIsExcludeListExpanded((current) => !current)}
+            aria-expanded={isExcludeListExpanded}
           >
-            {getExcludeTargetLabel(target)}
+            {isExcludeListExpanded
+              ? t("hideListCollapse")
+              : t("hideListShowMore", { count: hiddenExcludeCount })}
           </button>
-        ))}
+        )}
       </div>
     </div>
   );
